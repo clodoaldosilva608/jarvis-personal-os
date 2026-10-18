@@ -10,33 +10,129 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as DashboardBriefingRouteImport } from './routes/_dashboard.briefing'
+import { Route as DashboardChatRouteImport } from './routes/_dashboard.chat'
+import { Route as DashboardFinanceRouteImport } from './routes/_dashboard.finance'
+import { Route as DashboardLogsRouteImport } from './routes/_dashboard.logs'
+import { Route as DashboardMonitoringRouteImport } from './routes/_dashboard.monitoring'
+import { Route as DashboardSettingsRouteImport } from './routes/_dashboard.settings'
+import { Route as DashboardSourcesRouteImport } from './routes/_dashboard.sources'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/_dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardBriefingRoute = DashboardBriefingRouteImport.update({
+  id: '/briefing',
+  path: '/briefing',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardChatRoute = DashboardChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFinanceRoute = DashboardFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardLogsRoute = DashboardLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMonitoringRoute = DashboardMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSourcesRoute = DashboardSourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/briefing': typeof DashboardBriefingRoute
+  '/chat': typeof DashboardChatRoute
+  '/finance': typeof DashboardFinanceRoute
+  '/logs': typeof DashboardLogsRoute
+  '/monitoring': typeof DashboardMonitoringRoute
+  '/settings': typeof DashboardSettingsRoute
+  '/sources': typeof DashboardSourcesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/briefing': typeof DashboardBriefingRoute
+  '/chat': typeof DashboardChatRoute
+  '/finance': typeof DashboardFinanceRoute
+  '/logs': typeof DashboardLogsRoute
+  '/monitoring': typeof DashboardMonitoringRoute
+  '/settings': typeof DashboardSettingsRoute
+  '/sources': typeof DashboardSourcesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_dashboard': typeof DashboardRouteWithChildren
+  '/_dashboard/briefing': typeof DashboardBriefingRoute
+  '/_dashboard/chat': typeof DashboardChatRoute
+  '/_dashboard/finance': typeof DashboardFinanceRoute
+  '/_dashboard/logs': typeof DashboardLogsRoute
+  '/_dashboard/monitoring': typeof DashboardMonitoringRoute
+  '/_dashboard/settings': typeof DashboardSettingsRoute
+  '/_dashboard/sources': typeof DashboardSourcesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/briefing'
+    | '/chat'
+    | '/finance'
+    | '/logs'
+    | '/monitoring'
+    | '/settings'
+    | '/sources'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/briefing'
+    | '/chat'
+    | '/finance'
+    | '/logs'
+    | '/monitoring'
+    | '/settings'
+    | '/sources'
+  id:
+    | '__root__'
+    | '/'
+    | '/_dashboard'
+    | '/_dashboard/briefing'
+    | '/_dashboard/chat'
+    | '/_dashboard/finance'
+    | '/_dashboard/logs'
+    | '/_dashboard/monitoring'
+    | '/_dashboard/settings'
+    | '/_dashboard/sources'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +144,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_dashboard': {
+      id: '/_dashboard'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_dashboard/briefing': {
+      id: '/_dashboard/briefing'
+      path: '/briefing'
+      fullPath: '/briefing'
+      preLoaderRoute: typeof DashboardBriefingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/chat': {
+      id: '/_dashboard/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof DashboardChatRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/finance': {
+      id: '/_dashboard/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof DashboardFinanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/logs': {
+      id: '/_dashboard/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof DashboardLogsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/monitoring': {
+      id: '/_dashboard/monitoring'
+      path: '/monitoring'
+      fullPath: '/monitoring'
+      preLoaderRoute: typeof DashboardMonitoringRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/settings': {
+      id: '/_dashboard/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/sources': {
+      id: '/_dashboard/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof DashboardSourcesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardBriefingRoute: typeof DashboardBriefingRoute
+  DashboardChatRoute: typeof DashboardChatRoute
+  DashboardFinanceRoute: typeof DashboardFinanceRoute
+  DashboardLogsRoute: typeof DashboardLogsRoute
+  DashboardMonitoringRoute: typeof DashboardMonitoringRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSourcesRoute: typeof DashboardSourcesRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardBriefingRoute: DashboardBriefingRoute,
+  DashboardChatRoute: DashboardChatRoute,
+  DashboardFinanceRoute: DashboardFinanceRoute,
+  DashboardLogsRoute: DashboardLogsRoute,
+  DashboardMonitoringRoute: DashboardMonitoringRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSourcesRoute: DashboardSourcesRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

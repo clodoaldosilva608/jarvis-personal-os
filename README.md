@@ -27,3 +27,8 @@ npm run dev
 - TypeScript
 - React
 - Tailwind CSS
+
+## J.A.R.V.I.S. OS — Identidade visual
+- Tokens em `src/styles.css` (fonte única): fundo #05070A, cyan #00E5FF, roxo #7C3AED, glass + bordas neon, fonte Inter.
+- Orb: `src/components/orb` (Canvas 2D, 7 estados). Componentes base: `src/components/jarvis`.
+- HUD em `/`, dashboard em `/briefing`, `/chat`, `/sources`, `/monitoring`, `/finance`, `/logs`, `/settings`.
