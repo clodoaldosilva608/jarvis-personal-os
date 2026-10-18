@@ -55,7 +55,7 @@ export class OrbRenderer {
     const t = this.t;
     const k = [3, 5, 7];
     let r = 1 + s.offset;
-    for (let i = 0; i < 3; i++) r += s.amps[i] * Math.sin(k[i] * th + s.phases[i] + t * s.speeds[i]);
+    for (let i = 0; i < 3; i++) r += s.amps[i]! * Math.sin(k[i]! * th + s.phases[i]! + t * s.speeds[i]!);
     return r * R;
   }
 
@@ -123,7 +123,7 @@ export class OrbRenderer {
     // bright nodes
     for (const n of this.nodes) {
       n.theta += dt * n.speed * this.p.speed;
-      const r = this.radius(this.strands[n.strand], n.theta, R);
+      const r = this.radius(this.strands[n.strand]!, n.theta, R);
       const x = cx + Math.cos(n.theta + rot) * r, y = cy + Math.sin(n.theta + rot) * r;
       const g = ctx.createRadialGradient(x, y, 0, x, y, 22 * n.size * scale);
       g.addColorStop(0, col(0.95));
