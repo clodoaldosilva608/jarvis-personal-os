@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export interface OrbProps {
   state: OrbState;
   intensity?: number;
-  userImage?: string;
+  userImage?: string | undefined;
   size?: number;
   className?: string;
 }
