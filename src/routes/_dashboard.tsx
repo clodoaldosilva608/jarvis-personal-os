@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sun, MessageSquare, Database, Activity, Wallet, ScrollText, Settings, PanelLeft, Hexagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,7 @@ const items = [
 
 function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => { if (window.innerWidth < 768) setCollapsed(true); }, []);
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="relative flex min-h-screen w-full bg-background">
@@ -40,7 +41,7 @@ function DashboardLayout() {
           })}
         </nav>
       </aside>
-      <main className="relative z-10 flex-1 overflow-x-hidden p-5 md:p-8"><Outlet /></main>
+      <main className="relative z-10 min-w-0 flex-1 overflow-x-hidden p-5 md:p-8"><Outlet /></main>
     </div>
   );
 }
