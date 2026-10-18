@@ -15,9 +15,9 @@ export interface BriefingNews { title: string; source: string; url: string; topi
 export interface BriefingResult {
   generatedAt: string;
   weather: BriefingWeather | null;
-  weatherError?: string;
+  weatherError?: string | undefined;
   events: BriefingEvent[];
-  agendaError?: string;
+  agendaError?: string | undefined;
   news: BriefingNews[];
 }
 
