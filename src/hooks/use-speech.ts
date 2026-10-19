@@ -110,7 +110,9 @@ export function useSpeech(): UseSpeechReturn {
     };
     utter.onerror = (e) => {
       clearTimeout(fallback);
-      setSpeaking(false);
+      // Treat error like end — fire onEnd so callers (orb) can reset to idle,
+      // otherwise the UI stays stuck in "speaking" forever.
+      safeEnd();
       opts.onError?.(e);
     };
 
