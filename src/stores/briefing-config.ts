@@ -19,7 +19,7 @@ interface Store extends BriefingSettings {
 }
 
 export const DEFAULT_SETTINGS: BriefingSettings = {
-  location: "Maragogi",
+  location: "",
   timezone: "America/Maceio",
   agendaSources: [],
   newsTopics: ["tecnologia", "inteligência artificial"],

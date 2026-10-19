@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sun, MessageSquare, Database, Activity, Wallet, ScrollText, Settings, PanelLeft, Hexagon } from "lucide-react";
+import { Sun, MessageSquare, Database, Activity, Wallet, ScrollText, Settings, PanelLeft, Hexagon, Zap, Home, Newspaper } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_dashboard")({ component: DashboardLayout });
@@ -9,6 +9,9 @@ const items = [
   { to: "/briefing", label: "Briefing", icon: Sun },
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/sources", label: "Fontes", icon: Database },
+  { to: "/routines", label: "Rotinas", icon: Zap },
+  { to: "/aparelhos", label: "Aparelhos", icon: Home },
+  { to: "/news", label: "Notícias", icon: Newspaper },
   { to: "/monitoring", label: "Monitoramento", icon: Activity },
   { to: "/finance", label: "Finanças", icon: Wallet },
   { to: "/logs", label: "Logs", icon: ScrollText },
@@ -17,12 +20,24 @@ const items = [
 
 function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => { if (window.innerWidth < 768) setCollapsed(true); }, []);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setCollapsed(true);
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="relative flex min-h-screen w-full bg-background">
       <div className="hud-grid pointer-events-none fixed inset-0" />
-      <aside className={cn("glass relative z-10 flex shrink-0 flex-col border-y-0 border-l-0 transition-all duration-300", collapsed ? "w-14" : "w-56")}>
+      {!isMobile && (
+        {!isMobile && (
+        <aside className={cn("glass relative z-10 flex shrink-0 flex-col border-y-0 border-l-0 transition-all duration-300", collapsed ? "w-14" : "w-56")}>
         <div className="flex h-14 items-center gap-2 px-3">
           <button onClick={() => setCollapsed((c) => !c)} aria-label="Alternar menu" className="rounded-md p-1.5 text-muted-foreground hover:text-primary"><PanelLeft className="size-5" /></button>
           {!collapsed && <span className="hud-label text-primary text-glow">J.A.R.V.I.S.</span>}
@@ -41,7 +56,21 @@ function DashboardLayout() {
           })}
         </nav>
       </aside>
-      <main className="relative z-10 min-w-0 flex-1 overflow-x-hidden p-5 md:p-8"><Outlet /></main>
+      )}
+      <main className={cn("relative z-10 min-w-0 flex-1 overflow-x-hidden p-5 md:p-8", isMobile && "pb-20")}><Outlet /></main>
+      {isMobile && (
+        <nav className="glass fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-glass-border px-2 pb-[env(safe-area-inset-bottom)] pt-1.5">
+          <Link to="/" className="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-muted-foreground transition hover:text-primary"><Hexagon className="size-5" /><span className="text-[9px] uppercase tracking-wide">HUD</span></Link>
+          {items.map(({ to, label, icon: Icon }) => {
+            const active = path === to;
+            return (
+              <Link key={to} to={to} className={cn("flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 transition", active ? "text-primary" : "text-muted-foreground hover:text-primary")}>
+                <Icon className="size-5" /><span className="text-[9px] uppercase tracking-wide">{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }

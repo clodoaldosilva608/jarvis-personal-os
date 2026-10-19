@@ -5,6 +5,8 @@ import { Orb } from "@/components/orb/Orb";
 import { GlassCard, MicButton, StatusBadge, Waveform } from "@/components/jarvis";
 import { Particles } from "@/components/jarvis/Particles";
 import { useJarvis, STATUS_LABEL } from "@/stores/jarvis";
+import { useBriefingConfig } from "@/stores/briefing-config";
+import { useBriefingConfig } from "@/stores/briefing-config";
 import type { OrbState } from "@/types/jarvis";
 
 export const Route = createFileRoute("/")({
@@ -23,10 +25,11 @@ const STATES: OrbState[] = ["idle", "listening", "thinking", "speaking", "identi
 
 function Hud() {
   const { orbState, setOrbState } = useJarvis();
+  const { location } = useBriefingConfig();
   const [size, setSize] = useState(420);
 
   useEffect(() => {
-    const f = () => setSize(Math.min(window.innerWidth * 0.92, window.innerHeight * 0.5, 560));
+    const f = () => setSize(Math.min(window.innerWidth * 0.85, window.innerHeight * 0.45, 560));
     f();
     window.addEventListener("resize", f);
     return () => window.removeEventListener("resize", f);
@@ -62,13 +65,13 @@ function Hud() {
           <Orb state={orbState} size={size} userImage={orbState === "identifying" ? "https://i.pravatar.cc/300?img=12" : undefined} />
         </ClientOnly>
 
-        <div className={`pointer-events-none absolute inset-x-4 top-4 flex justify-between gap-3 transition-all duration-500 md:inset-x-16 ${showCards ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"}`}>
-          <GlassCard className="w-40 p-3 md:w-56 md:p-4">
-            <div className="flex items-center gap-2 text-primary"><CloudSun className="size-4" /><span className="hud-label">Maragogi</span></div>
+        <div className={`pointer-events-none absolute inset-x-4 top-4 flex flex-col gap-3 transition-all duration-500 md:flex-row md:justify-between transition-all duration-500 md:inset-x-16 ${showCards ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"}`}>
+          <GlassCard className="w-full p-3 md:w-56 md:p-4">
+            <div className="flex items-center gap-2 text-primary"><CloudSun className="size-4" /><span className="hud-label">{location || "Sua localização"}</span></div>
             <div className="mt-1 text-2xl font-semibold">29°</div>
             <div className="text-xs text-muted-foreground">Parcialmente nublado · 20% chuva</div>
           </GlassCard>
-          <GlassCard className="w-40 p-3 md:w-56 md:p-4">
+          <GlassCard className="w-full p-3 md:w-56 md:p-4">
             <div className="flex items-center gap-2 text-primary"><CalendarDays className="size-4" /><span className="hud-label">Agenda</span></div>
             <div className="mt-1 text-sm font-medium">Reunião de produto</div>
             <div className="text-xs text-muted-foreground">Hoje · 10:30</div>
@@ -79,9 +82,9 @@ function Hud() {
       <footer className="relative z-10 flex flex-col items-center gap-4 pb-8">
         <Waveform active={orbState === "listening" || orbState === "speaking"} />
         <MicButton active={orbState === "listening"} onClick={toggleMic} />
-        <div className="flex max-w-[92vw] flex-wrap justify-center gap-1.5">
+        <div className="flex max-w-[92vw] gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:justify-center md:overflow-visible">
           {STATES.map((s) => (
-            <button key={s} onClick={() => setOrbState(s)} className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-wider transition ${orbState === s ? "border-primary text-primary" : "border-glass-border text-subtle hover:text-muted-foreground"}`}>
+            <button key={s} onClick={() => setOrbState(s)} className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-wider transition ${orbState === s ? "border-primary text-primary" : "border-glass-border text-subtle hover:text-muted-foreground"}`}>
               {s}
             </button>
           ))}
