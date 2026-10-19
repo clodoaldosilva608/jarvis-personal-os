@@ -59,8 +59,8 @@ export class OrbRenderer {
     this.ctx = canvas.getContext("2d")!;
     let seed = 13;
     const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    // 8 wide flowing ribbons — sparse & ethereal (matches reference better than 12)
-    for (let i = 0; i < 8; i++) {
+    // 6 wide flowing ribbons — sparse & ethereal (matches reference best)
+    for (let i = 0; i < 6; i++) {
       this.ribbons.push({
         amps: [
           0.10 + rnd() * 0.12,
@@ -71,7 +71,7 @@ export class OrbRenderer {
         speeds: [(rnd() - 0.5) * 0.9, (rnd() - 0.5) * 1.3, (rnd() - 0.5) * 1.7],
         width: 0.8 + rnd() * 1.6,
         peak: 0.55 + rnd() * 0.45,
-        rotation: (i / 8) * Math.PI * 2 + (rnd() - 0.5) * 0.4,
+        rotation: (i / 6) * Math.PI * 2 + (rnd() - 0.5) * 0.4,
         radialOffset: (rnd() - 0.5) * 0.12,
         hueShift: (rnd() - 0.5) * 0.5,
       });
@@ -80,7 +80,7 @@ export class OrbRenderer {
     const nodeAngles = [0.6, 2.1, 3.8, 5.4];
     for (let i = 0; i < 4; i++) {
       this.nodes.push({
-        ribbon: Math.floor(rnd() * 8),
+        ribbon: Math.floor(rnd() * 6),
         theta: nodeAngles[i]! + (rnd() - 0.5) * 0.4,
         speed: 0.12 + rnd() * 0.28,
         size: 0.8 + rnd() * 0.6,
@@ -133,23 +133,16 @@ export class OrbRenderer {
     ctx.clearRect(0, 0, w, h);
     ctx.globalCompositeOperation = "lighter";
 
-    // === Layer 1: wide atmospheric halo (the "aura" that bleeds into the background) ===
-    const halo = ctx.createRadialGradient(cx, cy, R * 0.3, cx, cy, R * 2.2);
+    // === Layer 1: atmospheric halo (only OUTSIDE the ring — center stays dark) ===
+    const halo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, R * 2.2);
     halo.addColorStop(0, this.col(0.10 * this.p.glow, 0));
     halo.addColorStop(0.4, this.col(0.06 * this.p.glow, 0));
     halo.addColorStop(1, this.col(0, 0));
     ctx.fillStyle = halo;
     ctx.fillRect(0, 0, w, h);
 
-    // === Layer 2: core glow (cyan-blue radial gradient in the center) ===
-    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.1);
-    core.addColorStop(0, this.col(0.35 * this.p.glow + this.p.flash * 0.4, +0.6));
-    core.addColorStop(0.4, this.col(0.15 * this.p.glow, 0));
-    core.addColorStop(1, this.col(0, 0));
-    ctx.fillStyle = core;
-    ctx.fillRect(0, 0, w, h);
-
-    // === Layer 3: speaking waves (concentric pulses emanating from core) ===
+    // === Layer 2: speaking waves (concentric pulses emanating from core) ===
+    // (only render when actively speaking — keeps center dark the rest of the time)
     if (this.state === "speaking" && this.t - this.lastWave > 0.5) {
       this.waves.push(0);
       this.lastWave = this.t;
@@ -242,16 +235,7 @@ export class OrbRenderer {
       ctx.fill();
     }
 
-    // === Layer 6: subtle center glow (NOT a bright white dot — reference has a darker center) ===
-    // Keep just a soft, faint blue hint in the middle to give depth.
-    const hot = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.30);
-    hot.addColorStop(0, this.col(0.20 * this.p.glow, +0.4));
-    hot.addColorStop(0.5, this.col(0.08 * this.p.glow, 0));
-    hot.addColorStop(1, this.col(0, 0));
-    ctx.fillStyle = hot;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R * 0.30, 0, Math.PI * 2);
-    ctx.fill();
+    // (Layer 6 intentionally omitted — reference has a DARK center, no glow.)
 
     ctx.globalCompositeOperation = "source-over";
 

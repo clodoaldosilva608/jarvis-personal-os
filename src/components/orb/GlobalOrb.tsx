@@ -91,45 +91,12 @@ export function GlobalOrb() {
           }}
         />
 
-        {/* Layer C — Soft central glow (subtle, NOT a bright "sun" — reference has a darker center) */}
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "30%",
-            height: "30%",
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle, rgba(180,210,255,0.30) 0%, rgba(20,90,220,0.18) 35%, rgba(20,60,180,0.06) 65%, transparent 85%)",
-            filter: "blur(20px)",
-            boxShadow:
-              "0 0 60px rgba(20,90,220,0.35), 0 0 120px rgba(20,90,220,0.20)",
-          }}
-        />
+        {/* Layer C — Empty dark center (reference has no bright core, just the ring) */}
+        {/* Intentionally omitted — leave the center dark to match the reference. */}
 
-        {/* Layer D — Decorative rings (very subtle, just hints of structure) */}
-        <div
-          style={{
-            position: "absolute",
-            inset: "8%",
-            borderRadius: "50%",
-            border: "1px solid rgba(20,90,220,0.20)",
-            boxShadow:
-              "0 0 20px rgba(20,90,220,0.15), inset 0 0 20px rgba(20,90,220,0.08)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: "22%",
-            borderRadius: "50%",
-            border: "1px dashed rgba(20,90,220,0.15)",
-          }}
-        />
+        {/* Layer D — (no decorative rings — they would clutter the ethereal look) */}
 
-        {/* Layer E — Canvas orb (12 ribbons + 5 hotspot nodes + white-hot core) */}
+        {/* Layer E — Canvas orb (6 ribbons + 4 hotspot nodes, dark center) */}
         {hydrated && (
           <div
             style={{
