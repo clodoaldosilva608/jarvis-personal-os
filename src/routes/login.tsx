@@ -56,7 +56,7 @@ function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
       <div className="hud-grid absolute inset-0" />
       <div className="hud-vignette absolute inset-0" />
       <Particles />

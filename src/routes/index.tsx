@@ -76,7 +76,7 @@ function Hud() {
   const tone = orbState === "error" ? "danger" : orbState === "success" ? "success" : "primary";
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center overflow-hidden bg-background">
+    <main className="relative flex min-h-screen flex-col items-center overflow-hidden">
       <div className="hud-grid absolute inset-0" />
       <div className="hud-vignette absolute inset-0" />
       <Particles />

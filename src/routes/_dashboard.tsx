@@ -34,7 +34,7 @@ function DashboardLayout() {
   }, []);
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <div className="relative flex min-h-screen w-full bg-background">
+    <div className="relative flex min-h-screen w-full">
       <div className="hud-grid pointer-events-none fixed inset-0" />
       {!isMobile && (
         <aside className={cn("glass relative z-10 flex shrink-0 flex-col border-y-0 border-l-0 transition-all duration-300", collapsed ? "w-14" : "w-56")}>
