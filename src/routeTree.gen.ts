@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardAiConfigRouteImport } from './routes/_dashboard.ai-config'
 import { Route as DashboardAparelhosRouteImport } from './routes/_dashboard.aparelhos'
 import { Route as DashboardBriefingRouteImport } from './routes/_dashboard.briefing'
 import { Route as DashboardChatRouteImport } from './routes/_dashboard.chat'
@@ -32,6 +34,16 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/_dashboard',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAiConfigRoute = DashboardAiConfigRouteImport.update({
+  id: '/ai-config',
+  path: '/ai-config',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAparelhosRoute = DashboardAparelhosRouteImport.update({
   id: '/aparelhos',
@@ -96,6 +108,8 @@ const DashboardSourcesRoute = DashboardSourcesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/ai-config': typeof DashboardAiConfigRoute
   '/aparelhos': typeof DashboardAparelhosRoute
   '/briefing': typeof DashboardBriefingRoute
   '/chat': typeof DashboardChatRoute
@@ -111,6 +125,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/ai-config': typeof DashboardAiConfigRoute
   '/aparelhos': typeof DashboardAparelhosRoute
   '/briefing': typeof DashboardBriefingRoute
   '/chat': typeof DashboardChatRoute
@@ -128,6 +144,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_dashboard/ai-config': typeof DashboardAiConfigRoute
   '/_dashboard/aparelhos': typeof DashboardAparelhosRoute
   '/_dashboard/briefing': typeof DashboardBriefingRoute
   '/_dashboard/chat': typeof DashboardChatRoute
@@ -145,6 +163,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/ai-config'
     | '/aparelhos'
     | '/briefing'
     | '/chat'
@@ -160,6 +180,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
+    | '/ai-config'
     | '/aparelhos'
     | '/briefing'
     | '/chat'
@@ -176,6 +198,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_dashboard'
+    | '/login'
+    | '/_dashboard/ai-config'
     | '/_dashboard/aparelhos'
     | '/_dashboard/briefing'
     | '/_dashboard/chat'
@@ -193,6 +217,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -210,6 +235,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_dashboard/ai-config': {
+      id: '/_dashboard/ai-config'
+      path: '/ai-config'
+      fullPath: '/ai-config'
+      preLoaderRoute: typeof DashboardAiConfigRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/aparelhos': {
       id: '/_dashboard/aparelhos'
@@ -299,6 +338,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardAiConfigRoute: typeof DashboardAiConfigRoute
   DashboardAparelhosRoute: typeof DashboardAparelhosRoute
   DashboardBriefingRoute: typeof DashboardBriefingRoute
   DashboardChatRoute: typeof DashboardChatRoute
@@ -314,6 +354,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAiConfigRoute: DashboardAiConfigRoute,
   DashboardAparelhosRoute: DashboardAparelhosRoute,
   DashboardBriefingRoute: DashboardBriefingRoute,
   DashboardChatRoute: DashboardChatRoute,
@@ -335,6 +376,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

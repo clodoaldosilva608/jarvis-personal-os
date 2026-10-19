@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Send, Loader2, Trash2, KeyRound, AlertCircle } from "lucide-react";
 import { GlassCard, SectionHeader, StatusBadge } from "@/components/jarvis";
 import { useAIConfig } from "@/stores/ai-config";
 import { useGemini } from "@/hooks/use-gemini";
+import { useMorningBriefing } from "@/hooks/use-morning-briefing";
 import { useJarvis } from "@/stores/jarvis";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,8 @@ function ChatPage() {
   const configured = useAIConfig((s) => s.configured);
   const { generateStream, isConfigured } = useGemini();
   const setOrbState = useJarvis((s) => s.setOrbState);
+  const briefing = useMorningBriefing();
+  const navigate = useNavigate();
 
   const [messages, setMessages] = useState<Msg[]>([
     { role: "model", text: "Sistema online. Como posso ajudar?" },
@@ -68,6 +71,20 @@ function ChatPage() {
     setInputText("");
     setSending(true);
     setOrbState("thinking");
+
+    // === Special: "bom dia" → trigger cinematic briefing on the home HUD ===
+    if (briefing.matchesGoodMorning(text)) {
+      setMessages((prev) => [...prev, { role: "user", text }]);
+      setMessages((prev) => [...prev, { role: "model", text: "Iniciando o briefing matinal. Retornando ao HUD…" }]);
+      setSending(false);
+      setOrbState("idle");
+      // Brief delay so user can read the response, then redirect home and start
+      setTimeout(() => {
+        navigate({ to: "/" });
+        setTimeout(() => briefing.start(), 800);
+      }, 1200);
+      return;
+    }
 
     const history = messages
       .filter((m) => !m.pending)

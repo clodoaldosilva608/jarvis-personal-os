@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useHydrated } from "@tanstack/react-router";
 import { Orb } from "./Orb";
 import { useJarvis } from "@/stores/jarvis";
+import { DEFAULT_USER_IMAGE } from "@/lib/briefing-data";
 
 /**
  * GlobalOrb — fixed full-viewport Canvas orb that renders behind all pages.
@@ -96,7 +97,7 @@ export function GlobalOrb() {
 
         {/* Layer D — (no decorative rings — they would clutter the ethereal look) */}
 
-        {/* Layer E — Canvas orb (6 ribbons + 4 hotspot nodes, dark center) */}
+        {/* Layer E — Canvas orb (10 ribbons + 5 hotspot nodes + Face ID when identifying) */}
         {hydrated && (
           <div
             style={{
@@ -107,7 +108,12 @@ export function GlobalOrb() {
               justifyContent: "center",
             }}
           >
-            <Orb state={orbState} size={size} className="pointer-events-none" />
+            <Orb
+              state={orbState}
+              size={size}
+              className="pointer-events-none"
+              userImage={orbState === "identifying" ? DEFAULT_USER_IMAGE : undefined}
+            />
           </div>
         )}
       </div>

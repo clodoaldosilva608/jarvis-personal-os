@@ -241,35 +241,73 @@ export class OrbRenderer {
 
     // === Layer 7 (state-specific): Face ID scan ring when identifying ===
     if (this.state === "identifying") {
-      const ir = R * 0.55;
+      const ir = R * 0.62;
+      // Background tint behind the photo to make it stand out
+      const bgG = ctx.createRadialGradient(cx, cy, 0, cx, cy, ir * 1.05);
+      bgG.addColorStop(0, this.col(0.15, +0.3));
+      bgG.addColorStop(1, this.col(0, 0));
+      ctx.fillStyle = bgG;
+      ctx.beginPath();
+      ctx.arc(cx, cy, ir * 1.05, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Clipped circular photo with subtle vignette
       ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, ir, 0, Math.PI * 2);
       ctx.clip();
       if (this.image?.complete && this.image.naturalWidth) {
-        ctx.globalAlpha = 0.85;
+        ctx.globalAlpha = 0.95;
         ctx.drawImage(this.image, cx - ir, cy - ir, ir * 2, ir * 2);
         ctx.globalAlpha = 1;
+        // Vignette overlay
+        const vg = ctx.createRadialGradient(cx, cy, ir * 0.5, cx, cy, ir);
+        vg.addColorStop(0, this.col(0, 0));
+        vg.addColorStop(1, this.col(0.4, +0.3));
+        ctx.fillStyle = vg;
+        ctx.beginPath();
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+        ctx.fill();
       } else {
         ctx.fillStyle = this.col(0.08);
         ctx.fillRect(cx - ir, cy - ir, ir * 2, ir * 2);
       }
+      // Horizontal scan line
       const sy = cy - ir + ((this.t * 0.8) % 1) * ir * 2;
       const lg = ctx.createLinearGradient(0, sy - 30 * scale, 0, sy);
       lg.addColorStop(0, this.col(0));
-      lg.addColorStop(1, this.col(0.6));
+      lg.addColorStop(0.6, this.col(0.4, +0.5));
+      lg.addColorStop(1, this.col(0.9, +0.7));
       ctx.fillStyle = lg;
       ctx.fillRect(cx - ir, sy - 30 * scale, ir * 2, 30 * scale);
       ctx.restore();
+
+      // Decorative scan rings
       ctx.lineWidth = 2 * scale;
-      ctx.strokeStyle = this.col(0.9, +0.5);
+      ctx.strokeStyle = this.col(0.95, +0.5);
       ctx.beginPath();
-      ctx.arc(cx, cy, ir + 8 * scale, this.t * 3, this.t * 3 + Math.PI * 1.2);
+      ctx.arc(cx, cy, ir + 8 * scale, this.t * 3, this.t * 3 + Math.PI * 1.4);
       ctx.stroke();
-      ctx.strokeStyle = this.col(0.35);
+      ctx.strokeStyle = this.col(0.4);
+      ctx.lineWidth = 1.5 * scale;
       ctx.beginPath();
       ctx.arc(cx, cy, ir + 16 * scale, -this.t * 2, -this.t * 2 + Math.PI * 0.6);
       ctx.stroke();
+      // Corner brackets (Face ID style)
+      const br = ir + 24 * scale;
+      const bl = 18 * scale;
+      ctx.strokeStyle = this.col(0.85, +0.5);
+      ctx.lineWidth = 2.5 * scale;
+      ctx.lineCap = "round";
+      for (const [sx, sy2] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+        const px = cx + sx * br;
+        const py = cy + sy2 * br;
+        ctx.beginPath();
+        ctx.moveTo(px, py + sy2 * -bl);
+        ctx.lineTo(px, py);
+        ctx.lineTo(px + sx * -bl, py);
+        ctx.stroke();
+      }
     }
   }
 }

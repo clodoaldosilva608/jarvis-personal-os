@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, Mic, MicOff } from "lucide-react";
-import { MicButton, StatusBadge } from "@/components/jarvis";
+import { Menu, Mic, MicOff, X } from "lucide-react";
+import { StatusBadge } from "@/components/jarvis";
 import { Particles } from "@/components/jarvis/Particles";
+import { BriefingOverlay } from "@/components/briefing/BriefingOverlay";
 import { useJarvis, STATUS_LABEL } from "@/stores/jarvis";
 import { useSpeech } from "@/hooks/use-speech";
 import { useGemini } from "@/hooks/use-gemini";
+import { useMorningBriefing } from "@/hooks/use-morning-briefing";
 import { useAIConfig } from "@/stores/ai-config";
 import { cn } from "@/lib/utils";
 
@@ -23,23 +25,24 @@ export const Route = createFileRoute("/")({
 
 function Hud() {
   const { orbState, setOrbState, isUnlocked } = useJarvis();
-  const { speak, cancel, speaking: ttsSpeaking, supported: ttsSupported } = useSpeech();
+  const { speak, cancel, supported: ttsSupported } = useSpeech();
   const { generate, isConfigured } = useGemini();
-  const apiKey = useAIConfig((s) => s.apiKey);
+  const briefing = useMorningBriefing();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [lastQuery, setLastQuery] = useState<string | null>(null);
+  const [lastQuery] = useState<string | null>(null);
   const hydrated = useHydrated();
 
-  // Auto-unlock for demo (remove this for production auth)
   useEffect(() => {
-    if (!isUnlocked) {
-      localStorage.setItem("jarvis-unlocked", "true");
-    }
+    if (!isUnlocked) localStorage.setItem("jarvis-unlocked", "true");
   }, [isUnlocked]);
 
-  // JARVIS responds via Gemini, then speaks the response via TTS.
+  // Trigger morning briefing if user said "bom dia"; otherwise Gemini.
   const respond = async (query: string) => {
     if (!query.trim()) return;
+    if (briefing.matchesGoodMorning(query)) {
+      briefing.start();
+      return;
+    }
     if (!isConfigured) {
       setOrbState("speaking");
       speak("Por favor, configure sua chave de IA no menu lateral para que eu possa conversar com você.", {
@@ -51,9 +54,7 @@ function Hud() {
     try {
       const response = await generate(query);
       setOrbState("speaking");
-      speak(response, {
-        onEnd: () => setOrbState("idle"),
-      });
+      speak(response, { onEnd: () => setOrbState("idle") });
     } catch (e) {
       const err = e as { message?: string };
       setOrbState("speaking");
@@ -64,8 +65,11 @@ function Hud() {
   };
 
   const toggleMic = () => {
+    if (briefing.running) {
+      briefing.cancel();
+      return;
+    }
     if (orbState === "listening") {
-      // Stop listening → think → respond via Gemini
       const query = lastQuery ?? "Bom dia. Pode me dar o briefing de hoje?";
       setOrbState("thinking");
       setTimeout(() => respond(query), 600);
@@ -73,7 +77,6 @@ function Hud() {
       cancel();
       setOrbState("idle");
     } else {
-      // Start listening
       setOrbState("listening");
     }
   };
@@ -81,24 +84,52 @@ function Hud() {
   const tone = orbState === "error" ? "danger" : orbState === "success" ? "success" : "primary";
   const isListening = orbState === "listening";
 
-  // Menu items (link to other dashboard routes)
   const menuItems = [
     { to: "/briefing", label: "Briefing Matinal" },
     { to: "/chat", label: "Chat" },
     { to: "/ai-config", label: "Chave de IA", highlight: !isConfigured },
     { to: "/routines", label: "Rotinas" },
     { to: "/aparelhos", label: "Aparelhos" },
+    { to: "/sources", label: "Fontes" },
     { to: "/news", label: "Notícias" },
     { to: "/monitors", label: "Monitores" },
     { to: "/finance", label: "Finanças" },
     { to: "/settings", label: "Configurações" },
   ] as const;
 
+  const micLabel = briefing.running
+    ? "Toque para cancelar"
+    : isListening
+    ? "Toque para parar"
+    : orbState === "speaking"
+    ? "Toque para interromper"
+    : "Toque para falar";
+
   return (
     <main className="relative flex min-h-screen flex-col items-center overflow-hidden">
       <div className="hud-grid absolute inset-0" />
       <div className="hud-vignette absolute inset-0" />
       <Particles />
+
+      {/* === Briefing overlay: cards floating around the orb === */}
+      {briefing.briefing && (
+        <>
+          <BriefingOverlay
+            data={briefing.briefing}
+            revealedCards={briefing.revealedCards}
+            activeCard={briefing.activeCard}
+          />
+          {!briefing.running && briefing.revealedCards.closing && (
+            <button
+              onClick={briefing.dismiss}
+              aria-label="Fechar briefing"
+              className="fixed right-5 top-1/2 z-50 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-border-strong bg-card/60 text-muted-foreground backdrop-blur-xl transition hover:text-primary hover:neon-glow"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </>
+      )}
 
       {/* === Top-left: hamburger menu button === */}
       <button
@@ -110,7 +141,7 @@ function Hud() {
         <Menu className="size-5" />
       </button>
 
-      {/* === Top-right: status badge === */}
+      {/* === Top-right: status badge + "Configure IA" hint === */}
       <div className="fixed right-5 top-5 z-40 flex items-center gap-2">
         {!isConfigured && hydrated && (
           <Link
@@ -123,6 +154,16 @@ function Hud() {
         <StatusBadge tone={tone} live>{STATUS_LABEL[orbState]}</StatusBadge>
       </div>
 
+      {/* === Top-center: "Bom dia" quick trigger (only when idle + no briefing) === */}
+      {!briefing.running && !briefing.briefing && (
+        <button
+          onClick={() => briefing.start()}
+          className="fixed left-1/2 top-5 z-40 -translate-x-1/2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary backdrop-blur-xl transition hover:bg-primary/20 hover:neon-glow"
+        >
+          ☀ Bom dia, JARVIS
+        </button>
+      )}
+
       {/* === Bottom-center: mic toggle button === */}
       <div className="fixed bottom-8 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-3">
         <button
@@ -132,28 +173,21 @@ function Hud() {
             "flex size-20 items-center justify-center rounded-full border-2 backdrop-blur-xl transition-all duration-300",
             isListening
               ? "border-primary bg-primary/25 text-primary neon-glow-strong scale-110"
+              : briefing.running
+              ? "border-destructive bg-destructive/20 text-destructive hover:bg-destructive/30"
               : "border-border-strong bg-card/40 text-primary hover:neon-glow hover:scale-105"
           )}
         >
           {isListening ? <MicOff className="size-7" /> : <Mic className="size-7" />}
         </button>
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/80 text-glow">
-          {isListening
-            ? "Toque para parar"
-            : orbState === "speaking"
-            ? "Toque para interromper"
-            : "Toque para falar"}
+          {micLabel}
         </p>
       </div>
 
       {/* === Slide-in hamburger menu === */}
       {menuOpen && (
-        <div
-          className="fixed inset-0 z-50 flex"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu de navegação"
-        >
+        <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Menu de navegação">
           <div
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             onClick={() => setMenuOpen(false)}
@@ -170,7 +204,6 @@ function Hud() {
                 ✕
               </button>
             </div>
-            {/* AI status indicator at top of menu */}
             <Link
               to="/ai-config"
               onClick={() => setMenuOpen(false)}
