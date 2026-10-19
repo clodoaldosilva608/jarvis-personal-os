@@ -36,7 +36,6 @@ function DashboardLayout() {
     <div className="relative flex min-h-screen w-full bg-background">
       <div className="hud-grid pointer-events-none fixed inset-0" />
       {!isMobile && (
-        {!isMobile && (
         <aside className={cn("glass relative z-10 flex shrink-0 flex-col border-y-0 border-l-0 transition-all duration-300", collapsed ? "w-14" : "w-56")}>
         <div className="flex h-14 items-center gap-2 px-3">
           <button onClick={() => setCollapsed((c) => !c)} aria-label="Alternar menu" className="rounded-md p-1.5 text-muted-foreground hover:text-primary"><PanelLeft className="size-5" /></button>

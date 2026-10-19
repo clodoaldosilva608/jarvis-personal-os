@@ -6,7 +6,6 @@ import { GlassCard, MicButton, StatusBadge, Waveform } from "@/components/jarvis
 import { Particles } from "@/components/jarvis/Particles";
 import { useJarvis, STATUS_LABEL } from "@/stores/jarvis";
 import { useBriefingConfig } from "@/stores/briefing-config";
-import { useBriefingConfig } from "@/stores/briefing-config";
 import type { OrbState } from "@/types/jarvis";
 
 export const Route = createFileRoute("/")({
