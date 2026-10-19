@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sun, MessageSquare, Database, Activity, Wallet, ScrollText, Settings, PanelLeft, Hexagon, Zap, Home, Newspaper } from "lucide-react";
+import { Sun, MessageSquare, Database, Activity, Wallet, ScrollText, Settings, PanelLeft, Hexagon, Zap, Home, Newspaper, Monitor, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_dashboard")({ component: DashboardLayout });
@@ -14,6 +14,7 @@ const items = [
   { to: "/news", label: "Notícias", icon: Newspaper },
   { to: "/monitoring", label: "Monitoramento", icon: Activity },
   { to: "/finance", label: "Finanças", icon: Wallet },
+  { to: "/monitors", label: "Monitores", icon: Monitor },
   { to: "/logs", label: "Logs", icon: ScrollText },
   { to: "/settings", label: "Configurações", icon: Settings },
 ] as const;
@@ -69,6 +70,13 @@ function DashboardLayout() {
             );
           })}
         </nav>
+      )}
+
+      {/* Floating button — "Pergunte qualquer coisa" */}
+      {!isMobile && (
+        <Link to="/" className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-border-strong bg-card/80 px-5 py-3 text-sm font-medium text-primary backdrop-blur-xl transition hover:neon-glow hover:scale-105" style={{ boxShadow: "0 0 20px var(--glow-primary)" }}>
+          <MessageCircle className="size-4" /> Pergunte qualquer coisa
+        </Link>
       )}
     </div>
   );

@@ -11,11 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as DashboardAparelhosRouteImport } from './routes/_dashboard.aparelhos'
 import { Route as DashboardBriefingRouteImport } from './routes/_dashboard.briefing'
 import { Route as DashboardChatRouteImport } from './routes/_dashboard.chat'
 import { Route as DashboardFinanceRouteImport } from './routes/_dashboard.finance'
 import { Route as DashboardLogsRouteImport } from './routes/_dashboard.logs'
 import { Route as DashboardMonitoringRouteImport } from './routes/_dashboard.monitoring'
+import { Route as DashboardNewRoutineRouteImport } from './routes/_dashboard.new-routine'
+import { Route as DashboardNewsRouteImport } from './routes/_dashboard.news'
+import { Route as DashboardRoutinesRouteImport } from './routes/_dashboard.routines'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard.settings'
 import { Route as DashboardSourcesRouteImport } from './routes/_dashboard.sources'
 
@@ -27,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/_dashboard',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAparelhosRoute = DashboardAparelhosRouteImport.update({
+  id: '/aparelhos',
+  path: '/aparelhos',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardBriefingRoute = DashboardBriefingRouteImport.update({
   id: '/briefing',
@@ -53,6 +62,21 @@ const DashboardMonitoringRoute = DashboardMonitoringRouteImport.update({
   path: '/monitoring',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardNewRoutineRoute = DashboardNewRoutineRouteImport.update({
+  id: '/new-routine',
+  path: '/new-routine',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNewsRoute = DashboardNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRoutinesRoute = DashboardRoutinesRouteImport.update({
+  id: '/routines',
+  path: '/routines',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -66,21 +90,29 @@ const DashboardSourcesRoute = DashboardSourcesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aparelhos': typeof DashboardAparelhosRoute
   '/briefing': typeof DashboardBriefingRoute
   '/chat': typeof DashboardChatRoute
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
   '/monitoring': typeof DashboardMonitoringRoute
+  '/new-routine': typeof DashboardNewRoutineRoute
+  '/news': typeof DashboardNewsRoute
+  '/routines': typeof DashboardRoutinesRoute
   '/settings': typeof DashboardSettingsRoute
   '/sources': typeof DashboardSourcesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aparelhos': typeof DashboardAparelhosRoute
   '/briefing': typeof DashboardBriefingRoute
   '/chat': typeof DashboardChatRoute
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
   '/monitoring': typeof DashboardMonitoringRoute
+  '/new-routine': typeof DashboardNewRoutineRoute
+  '/news': typeof DashboardNewsRoute
+  '/routines': typeof DashboardRoutinesRoute
   '/settings': typeof DashboardSettingsRoute
   '/sources': typeof DashboardSourcesRoute
 }
@@ -88,11 +120,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
+  '/_dashboard/aparelhos': typeof DashboardAparelhosRoute
   '/_dashboard/briefing': typeof DashboardBriefingRoute
   '/_dashboard/chat': typeof DashboardChatRoute
   '/_dashboard/finance': typeof DashboardFinanceRoute
   '/_dashboard/logs': typeof DashboardLogsRoute
   '/_dashboard/monitoring': typeof DashboardMonitoringRoute
+  '/_dashboard/new-routine': typeof DashboardNewRoutineRoute
+  '/_dashboard/news': typeof DashboardNewsRoute
+  '/_dashboard/routines': typeof DashboardRoutinesRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/_dashboard/sources': typeof DashboardSourcesRoute
 }
@@ -100,32 +136,44 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/aparelhos'
     | '/briefing'
     | '/chat'
     | '/finance'
     | '/logs'
     | '/monitoring'
+    | '/new-routine'
+    | '/news'
+    | '/routines'
     | '/settings'
     | '/sources'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aparelhos'
     | '/briefing'
     | '/chat'
     | '/finance'
     | '/logs'
     | '/monitoring'
+    | '/new-routine'
+    | '/news'
+    | '/routines'
     | '/settings'
     | '/sources'
   id:
     | '__root__'
     | '/'
     | '/_dashboard'
+    | '/_dashboard/aparelhos'
     | '/_dashboard/briefing'
     | '/_dashboard/chat'
     | '/_dashboard/finance'
     | '/_dashboard/logs'
     | '/_dashboard/monitoring'
+    | '/_dashboard/new-routine'
+    | '/_dashboard/news'
+    | '/_dashboard/routines'
     | '/_dashboard/settings'
     | '/_dashboard/sources'
   fileRoutesById: FileRoutesById
@@ -150,6 +198,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_dashboard/aparelhos': {
+      id: '/_dashboard/aparelhos'
+      path: '/aparelhos'
+      fullPath: '/aparelhos'
+      preLoaderRoute: typeof DashboardAparelhosRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/briefing': {
       id: '/_dashboard/briefing'
@@ -186,6 +241,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardMonitoringRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/new-routine': {
+      id: '/_dashboard/new-routine'
+      path: '/new-routine'
+      fullPath: '/new-routine'
+      preLoaderRoute: typeof DashboardNewRoutineRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/news': {
+      id: '/_dashboard/news'
+      path: '/news'
+      fullPath: '/news'
+      preLoaderRoute: typeof DashboardNewsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/routines': {
+      id: '/_dashboard/routines'
+      path: '/routines'
+      fullPath: '/routines'
+      preLoaderRoute: typeof DashboardRoutinesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/settings': {
       id: '/_dashboard/settings'
       path: '/settings'
@@ -204,21 +280,29 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardAparelhosRoute: typeof DashboardAparelhosRoute
   DashboardBriefingRoute: typeof DashboardBriefingRoute
   DashboardChatRoute: typeof DashboardChatRoute
   DashboardFinanceRoute: typeof DashboardFinanceRoute
   DashboardLogsRoute: typeof DashboardLogsRoute
   DashboardMonitoringRoute: typeof DashboardMonitoringRoute
+  DashboardNewRoutineRoute: typeof DashboardNewRoutineRoute
+  DashboardNewsRoute: typeof DashboardNewsRoute
+  DashboardRoutinesRoute: typeof DashboardRoutinesRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSourcesRoute: typeof DashboardSourcesRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAparelhosRoute: DashboardAparelhosRoute,
   DashboardBriefingRoute: DashboardBriefingRoute,
   DashboardChatRoute: DashboardChatRoute,
   DashboardFinanceRoute: DashboardFinanceRoute,
   DashboardLogsRoute: DashboardLogsRoute,
   DashboardMonitoringRoute: DashboardMonitoringRoute,
+  DashboardNewRoutineRoute: DashboardNewRoutineRoute,
+  DashboardNewsRoute: DashboardNewsRoute,
+  DashboardRoutinesRoute: DashboardRoutinesRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSourcesRoute: DashboardSourcesRoute,
 }
