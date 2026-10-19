@@ -120,37 +120,53 @@ function Hud() {
 
       {/* Center: orb behind + dynamic card front */}
       <section className="relative z-10 flex flex-1 w-full items-center justify-center">
-        {/* CSS orb — always visible (even before JS) */}
-        <div className="absolute" style={{ width: size, height: size }}>
+        {/* CSS orb — 100% inline styles, always visible */}
+        <div style={{
+          position: 'absolute',
+          width: size, height: size,
+          pointerEvents: 'none',
+        }}>
           {/* Outer glow */}
-          <div className="absolute inset-0 rounded-full" style={{
-            background: 'radial-gradient(circle, rgba(0,229,255,0.25) 0%, rgba(0,229,255,0.08) 30%, transparent 60%)',
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0,229,255,0.3) 0%, rgba(0,229,255,0.1) 30%, transparent 60%)',
             filter: 'blur(30px)',
           }} />
           {/* Outer ring */}
-          <div className="absolute inset-[10%] rounded-full border-2 border-primary/20" style={{ animation: 'spin 20s linear infinite' }} />
-          {/* Middle ring (dashed) */}
-          <div className="absolute inset-[18%] rounded-full border border-dashed border-primary/30" style={{ animation: 'spin 15s linear infinite reverse' }} />
+          <div style={{
+            position: 'absolute', inset: '8%', borderRadius: '50%',
+            border: '2px solid rgba(0,229,255,0.2)',
+            animation: 'spin 20s linear infinite',
+          }} />
+          {/* Middle ring dashed */}
+          <div style={{
+            position: 'absolute', inset: '16%', borderRadius: '50%',
+            border: '1px dashed rgba(0,229,255,0.3)',
+            animation: 'spin 15s linear infinite reverse',
+          }} />
           {/* Inner ring */}
-          <div className="absolute inset-[28%] rounded-full border border-primary/40" style={{ animation: 'spin 10s linear infinite' }} />
+          <div style={{
+            position: 'absolute', inset: '25%', borderRadius: '50%',
+            border: '1px solid rgba(0,229,255,0.4)',
+            animation: 'spin 10s linear infinite',
+          }} />
           {/* Core glow */}
-          <div className="absolute inset-[35%] rounded-full" style={{
-            background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(0,229,255,0.3) 30%, transparent 70%)',
-            filter: 'blur(8px)',
-            animation: 'pulse-ring 2s ease-out infinite',
+          <div style={{
+            position: 'absolute', inset: '33%', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(0,229,255,0.4) 30%, transparent 70%)',
+            filter: 'blur(10px)',
           }} />
           {/* Bright center */}
-          <div className="absolute inset-[42%] rounded-full bg-primary/60" style={{ boxShadow: '0 0 30px rgba(0,229,255,0.5)' }} />
+          <div style={{
+            position: 'absolute', inset: '42%', borderRadius: '50%',
+            background: 'rgba(0,229,255,0.7)',
+            boxShadow: '0 0 40px rgba(0,229,255,0.6), 0 0 80px rgba(0,229,255,0.3)',
+          }} />
         </div>
 
-        {/* Canvas orb (renders after hydration, on top of CSS orb) */}
+        {/* Canvas orb (on top of CSS orb, after hydration) */}
         <ClientOnly fallback={null}>
-          <Orb
-            state={orbState}
-            size={size}
-            className="absolute z-1"
-            userImage={orbState === "identifying" ? "https://i.pravatar.cc/300?img=12" : undefined}
-          />
+          <Orb state={orbState} size={size} className="absolute pointer-events-none" userImage={orbState === "identifying" ? "https://i.pravatar.cc/300?img=12" : undefined} />
         </ClientOnly>
 
         {/* Dynamic card (semi-transparent, orb visible behind) */}
