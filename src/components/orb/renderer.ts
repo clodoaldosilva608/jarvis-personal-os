@@ -59,31 +59,31 @@ export class OrbRenderer {
     this.ctx = canvas.getContext("2d")!;
     let seed = 13;
     const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    // 6 wide flowing ribbons — sparse & ethereal (matches reference best)
-    for (let i = 0; i < 6; i++) {
+    // 10 thin, ethereal ribbons (reference shows ~8-12 delicate filaments)
+    for (let i = 0; i < 10; i++) {
       this.ribbons.push({
         amps: [
-          0.10 + rnd() * 0.12,
-          0.05 + rnd() * 0.08,
-          0.025 + rnd() * 0.04,
+          0.06 + rnd() * 0.06,
+          0.03 + rnd() * 0.04,
+          0.015 + rnd() * 0.025,
         ],
         phases: [rnd() * 6.28, rnd() * 6.28, rnd() * 6.28],
-        speeds: [(rnd() - 0.5) * 0.9, (rnd() - 0.5) * 1.3, (rnd() - 0.5) * 1.7],
-        width: 0.8 + rnd() * 1.6,
-        peak: 0.55 + rnd() * 0.45,
-        rotation: (i / 6) * Math.PI * 2 + (rnd() - 0.5) * 0.4,
-        radialOffset: (rnd() - 0.5) * 0.12,
-        hueShift: (rnd() - 0.5) * 0.5,
+        speeds: [(rnd() - 0.5) * 0.8, (rnd() - 0.5) * 1.2, (rnd() - 0.5) * 1.6],
+        width: 0.6 + rnd() * 1.0,
+        peak: 0.50 + rnd() * 0.45,
+        rotation: (i / 10) * Math.PI * 2 + (rnd() - 0.5) * 0.3,
+        radialOffset: (rnd() - 0.5) * 0.06,
+        hueShift: (rnd() - 0.5) * 0.4,
       });
     }
-    // 4 asymmetric hotspot nodes (not 5, asymmetrically placed)
-    const nodeAngles = [0.6, 2.1, 3.8, 5.4];
-    for (let i = 0; i < 4; i++) {
+    // 5 hotspot nodes — evenly distributed around the perimeter (asymmetric but spread)
+    const nodeAngles = [0.3, 1.6, 2.8, 4.2, 5.5];
+    for (let i = 0; i < 5; i++) {
       this.nodes.push({
-        ribbon: Math.floor(rnd() * 6),
-        theta: nodeAngles[i]! + (rnd() - 0.5) * 0.4,
-        speed: 0.12 + rnd() * 0.28,
-        size: 0.8 + rnd() * 0.6,
+        ribbon: Math.floor(rnd() * 10),
+        theta: nodeAngles[i]! + (rnd() - 0.5) * 0.3,
+        speed: 0.12 + rnd() * 0.25,
+        size: 0.8 + rnd() * 0.5,
       });
     }
   }
