@@ -1,0 +1,113 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+/**
+ * useSpeech — Text-to-Speech (TTS) via Web Speech API.
+ *
+ * Funcionalidades:
+ * - speak(text, opts): sintetiza voz em pt-BR
+ * - cancel(): para a fala atual
+ * - Estado: speaking, supported
+ * - Callbacks: onStart, onEnd, onBoundary (para karaoke)
+ *
+ * Usa a Web Speech API nativa do navegador (window.speechSynthesis).
+ * Funciona em Chrome, Edge, Safari e Firefox.
+ */
+
+interface SpeakOptions {
+  voice?: SpeechSynthesisVoice;
+  rate?: number;    // 0.1 - 10 (default 1)
+  pitch?: number;   // 0 - 2 (default 1)
+  volume?: number;  // 0 - 1 (default 1)
+  onStart?: () => void;
+  onEnd?: () => void;
+  onError?: (e: SpeechSynthesisErrorEvent) => void;
+}
+
+interface UseSpeechReturn {
+  speak: (text: string, opts?: SpeakOptions) => void;
+  cancel: () => void;
+  speaking: boolean;
+  supported: boolean;
+  voices: SpeechSynthesisVoice[];
+}
+
+const PREFERRED_VOICES = [
+  "pt-BR", "pt_BR", "pt",
+  "Google português do Brasil",
+  "Microsoft Antonio - Portuguese (Brazil)",
+];
+
+export function useSpeech(): UseSpeechReturn {
+  const [speaking, setSpeaking] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const supported = typeof window !== "undefined" && "speechSynthesis" in window;
+  const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Carrega vozes (assíncrono em alguns navegadores)
+  useEffect(() => {
+    if (!supported) return;
+    const loadVoices = () => {
+      const v = window.speechSynthesis.getVoices();
+      setVoices(v);
+    };
+    loadVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+  }, [supported]);
+
+  const pickVoice = useCallback((preferred?: SpeechSynthesisVoice) => {
+    if (preferred) return preferred;
+    for (const lang of PREFERRED_VOICES) {
+      const found = voices.find((v) => v.lang === lang || v.name.includes(lang));
+      if (found) return found;
+    }
+    return voices[0];
+  }, [voices]);
+
+  const speak = useCallback((text: string, opts: SpeakOptions = {}) => {
+    if (!supported || !text.trim()) return;
+
+    // Cancela fala anterior
+    window.speechSynthesis.cancel();
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "pt-BR";
+    utter.voice = pickVoice(opts.voice);
+    utter.rate = opts.rate ?? 1;
+    utter.pitch = opts.pitch ?? 1;
+    utter.volume = opts.volume ?? 1;
+
+    utter.onstart = () => {
+      setSpeaking(true);
+      opts.onStart?.();
+    };
+    utter.onend = () => {
+      setSpeaking(false);
+      opts.onEnd?.();
+    };
+    utter.onerror = (e) => {
+      setSpeaking(false);
+      opts.onError?.(e);
+    };
+
+    utterRef.current = utter;
+    window.speechSynthesis.speak(utter);
+  }, [supported, pickVoice]);
+
+  const cancel = useCallback(() => {
+    if (!supported) return;
+    window.speechSynthesis.cancel();
+    setSpeaking(false);
+  }, [supported]);
+
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => {
+      if (supported) window.speechSynthesis.cancel();
+    };
+  }, [supported]);
+
+  return { speak, cancel, speaking, supported, voices };
+}

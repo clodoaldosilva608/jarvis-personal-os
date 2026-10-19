@@ -17,6 +17,7 @@ import { Route as DashboardChatRouteImport } from './routes/_dashboard.chat'
 import { Route as DashboardFinanceRouteImport } from './routes/_dashboard.finance'
 import { Route as DashboardLogsRouteImport } from './routes/_dashboard.logs'
 import { Route as DashboardMonitoringRouteImport } from './routes/_dashboard.monitoring'
+import { Route as DashboardMonitorsRouteImport } from './routes/_dashboard.monitors'
 import { Route as DashboardNewRoutineRouteImport } from './routes/_dashboard.new-routine'
 import { Route as DashboardNewsRouteImport } from './routes/_dashboard.news'
 import { Route as DashboardRoutinesRouteImport } from './routes/_dashboard.routines'
@@ -62,6 +63,11 @@ const DashboardMonitoringRoute = DashboardMonitoringRouteImport.update({
   path: '/monitoring',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardMonitorsRoute = DashboardMonitorsRouteImport.update({
+  id: '/monitors',
+  path: '/monitors',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardNewRoutineRoute = DashboardNewRoutineRouteImport.update({
   id: '/new-routine',
   path: '/new-routine',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
   '/monitoring': typeof DashboardMonitoringRoute
+  '/monitors': typeof DashboardMonitorsRoute
   '/new-routine': typeof DashboardNewRoutineRoute
   '/news': typeof DashboardNewsRoute
   '/routines': typeof DashboardRoutinesRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
   '/monitoring': typeof DashboardMonitoringRoute
+  '/monitors': typeof DashboardMonitorsRoute
   '/new-routine': typeof DashboardNewRoutineRoute
   '/news': typeof DashboardNewsRoute
   '/routines': typeof DashboardRoutinesRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/_dashboard/finance': typeof DashboardFinanceRoute
   '/_dashboard/logs': typeof DashboardLogsRoute
   '/_dashboard/monitoring': typeof DashboardMonitoringRoute
+  '/_dashboard/monitors': typeof DashboardMonitorsRoute
   '/_dashboard/new-routine': typeof DashboardNewRoutineRoute
   '/_dashboard/news': typeof DashboardNewsRoute
   '/_dashboard/routines': typeof DashboardRoutinesRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/logs'
     | '/monitoring'
+    | '/monitors'
     | '/new-routine'
     | '/news'
     | '/routines'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/logs'
     | '/monitoring'
+    | '/monitors'
     | '/new-routine'
     | '/news'
     | '/routines'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/_dashboard/finance'
     | '/_dashboard/logs'
     | '/_dashboard/monitoring'
+    | '/_dashboard/monitors'
     | '/_dashboard/new-routine'
     | '/_dashboard/news'
     | '/_dashboard/routines'
@@ -241,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardMonitoringRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/monitors': {
+      id: '/_dashboard/monitors'
+      path: '/monitors'
+      fullPath: '/monitors'
+      preLoaderRoute: typeof DashboardMonitorsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/new-routine': {
       id: '/_dashboard/new-routine'
       path: '/new-routine'
@@ -286,6 +305,7 @@ interface DashboardRouteChildren {
   DashboardFinanceRoute: typeof DashboardFinanceRoute
   DashboardLogsRoute: typeof DashboardLogsRoute
   DashboardMonitoringRoute: typeof DashboardMonitoringRoute
+  DashboardMonitorsRoute: typeof DashboardMonitorsRoute
   DashboardNewRoutineRoute: typeof DashboardNewRoutineRoute
   DashboardNewsRoute: typeof DashboardNewsRoute
   DashboardRoutinesRoute: typeof DashboardRoutinesRoute
@@ -300,6 +320,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFinanceRoute: DashboardFinanceRoute,
   DashboardLogsRoute: DashboardLogsRoute,
   DashboardMonitoringRoute: DashboardMonitoringRoute,
+  DashboardMonitorsRoute: DashboardMonitorsRoute,
   DashboardNewRoutineRoute: DashboardNewRoutineRoute,
   DashboardNewsRoute: DashboardNewsRoute,
   DashboardRoutinesRoute: DashboardRoutinesRoute,

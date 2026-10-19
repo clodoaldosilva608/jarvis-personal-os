@@ -1,11 +1,12 @@
 import { createFileRoute, Link, ClientOnly } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CloudSun, CalendarDays, LayoutGrid, Mail, Newspaper, Droplets, Wind, Thermometer, Activity, Heart, Moon, Cpu } from "lucide-react";
+import { CloudSun, CalendarDays, LayoutGrid, Mail, Newspaper, Droplets, Wind, Thermometer, Activity, Heart, Moon, Cpu, Volume2 } from "lucide-react";
 import { Orb } from "@/components/orb/Orb";
 import { GlassCard, MicButton, StatusBadge, Waveform } from "@/components/jarvis";
 import { Particles } from "@/components/jarvis/Particles";
 import { useJarvis, STATUS_LABEL } from "@/stores/jarvis";
 import { useBriefingConfig } from "@/stores/briefing-config";
+import { useSpeech } from "@/hooks/use-speech";
 import type { OrbState } from "@/types/jarvis";
 import { cn } from "@/lib/utils";
 
@@ -35,10 +36,19 @@ const WIDGETS = [
 ];
 
 function Hud() {
-  const { orbState, setOrbState } = useJarvis();
+  const { orbState, setOrbState, isUnlocked } = useJarvis();
   const { location } = useBriefingConfig();
+  const { speak, cancel, speaking: ttsSpeaking, supported: ttsSupported } = useSpeech();
   const [size, setSize] = useState(420);
   const [cat, setCat] = useState<Cat>("email");
+
+  // Redirect to login if not unlocked
+  useEffect(() => {
+    if (!isUnlocked) {
+      const stored = localStorage.getItem("jarvis-unlocked");
+      if (!stored) window.location.href = "/login";
+    }
+  }, [isUnlocked]);
 
   useEffect(() => {
     const f = () => setSize(Math.min(window.innerWidth * 0.7, window.innerHeight * 0.4, 480));
@@ -47,12 +57,29 @@ function Hud() {
     return () => window.removeEventListener("resize", f);
   }, []);
 
+  // Speak briefing when category changes or orb is speaking
+  const speakBriefing = () => {
+    if (!ttsSupported) return;
+    setOrbState("speaking");
+    const text = cat === "weather"
+      ? `Em ${location || "sua localização"}, 26,7 graus, parcialmente nublado. Mínima de 23, máxima de 30, com 62% de chance de chuva.`
+      : cat === "email"
+      ? "Você tem 5 mensagens prioritárias. A mais urgente é da Estreme, solicitando atualização dos dados comerciais até 22 de outubro."
+      : cat === "agenda"
+      ? "Sua agenda está completamente disponível hoje. Nenhum compromisso agendado."
+      : "Nas notícias de tecnologia, a OpenAI freou o lançamento de um novo modelo de IA diante de riscos de segurança.";
+    speak(text, {
+      onEnd: () => setOrbState("idle"),
+    });
+  };
+
   const toggleMic = () => {
     if (orbState === "listening") {
       setOrbState("thinking");
-      setTimeout(() => setOrbState("speaking"), 1400);
-      setTimeout(() => setOrbState("idle"), 5000);
-    } else setOrbState("listening");
+      setTimeout(() => speakBriefing(), 1000);
+    } else {
+      setOrbState("listening");
+    }
   };
 
   const tone = orbState === "error" ? "danger" : orbState === "success" ? "success" : "primary";
@@ -194,13 +221,35 @@ function Hud() {
         })}
       </div>
 
-      {/* Footer: mic + hint */}
+      {/* Footer: mic + hint + speak button */}
       <footer className="relative z-10 flex flex-col items-center gap-3 pb-6">
         <Waveform active={orbState === "listening" || orbState === "speaking"} />
-        <MicButton active={orbState === "listening"} onClick={toggleMic} />
+        <div className="flex items-center gap-3">
+          <MicButton active={orbState === "listening"} onClick={toggleMic} />
+          {ttsSupported && (
+            <button
+              onClick={() => { if (ttsSpeaking) { cancel(); setOrbState("idle"); } else { speakBriefing(); } }}
+              className={cn(
+                "flex size-12 items-center justify-center rounded-full border transition-all",
+                ttsSpeaking
+                  ? "border-primary bg-primary/20 text-primary neon-glow-strong"
+                  : "border-border-strong bg-primary/5 text-primary hover:neon-glow"
+              )}
+            >
+              <Volume2 className="size-5" />
+            </button>
+          )}
+        </div>
         <p className="text-[10px] uppercase tracking-wider text-subtle">
           {orbState === "listening" ? "Fale agora..." : orbState === "speaking" ? "Respondendo..." : "Toque para falar"}
         </p>
+        <div className="flex max-w-[92vw] gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:justify-center md:overflow-visible">
+          {STATES.map((s) => (
+            <button key={s} onClick={() => setOrbState(s)} className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-wider transition ${orbState === s ? "border-primary text-primary" : "border-glass-border text-subtle hover:text-muted-foreground"}`}>
+              {s}
+            </button>
+          ))}
+        </div>
       </footer>
     </main>
   );
