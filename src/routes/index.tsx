@@ -5,6 +5,8 @@ import { MicButton, StatusBadge } from "@/components/jarvis";
 import { Particles } from "@/components/jarvis/Particles";
 import { useJarvis, STATUS_LABEL } from "@/stores/jarvis";
 import { useSpeech } from "@/hooks/use-speech";
+import { useGemini } from "@/hooks/use-gemini";
+import { useAIConfig } from "@/stores/ai-config";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -22,7 +24,10 @@ export const Route = createFileRoute("/")({
 function Hud() {
   const { orbState, setOrbState, isUnlocked } = useJarvis();
   const { speak, cancel, speaking: ttsSpeaking, supported: ttsSupported } = useSpeech();
+  const { generate, isConfigured } = useGemini();
+  const apiKey = useAIConfig((s) => s.apiKey);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [lastQuery, setLastQuery] = useState<string | null>(null);
   const hydrated = useHydrated();
 
   // Auto-unlock for demo (remove this for production auth)
@@ -32,22 +37,39 @@ function Hud() {
     }
   }, [isUnlocked]);
 
-  // Speak briefing when user toggles mic off after listening (mock conversation)
-  const speakBriefing = () => {
-    if (!ttsSupported) return;
-    setOrbState("speaking");
-    speak("Bom dia. Em que posso ajudar?", {
-      onEnd: () => setOrbState("idle"),
-    });
+  // JARVIS responds via Gemini, then speaks the response via TTS.
+  const respond = async (query: string) => {
+    if (!query.trim()) return;
+    if (!isConfigured) {
+      setOrbState("speaking");
+      speak("Por favor, configure sua chave de IA no menu lateral para que eu possa conversar com você.", {
+        onEnd: () => setOrbState("idle"),
+      });
+      return;
+    }
+    setOrbState("thinking");
+    try {
+      const response = await generate(query);
+      setOrbState("speaking");
+      speak(response, {
+        onEnd: () => setOrbState("idle"),
+      });
+    } catch (e) {
+      const err = e as { message?: string };
+      setOrbState("speaking");
+      speak(`Erro: ${err.message ?? "não consegui processar"}. Verifique sua chave de IA.`, {
+        onEnd: () => setOrbState("idle"),
+      });
+    }
   };
 
   const toggleMic = () => {
     if (orbState === "listening") {
-      // User stops listening → JARVIS thinks → responds
+      // Stop listening → think → respond via Gemini
+      const query = lastQuery ?? "Bom dia. Pode me dar o briefing de hoje?";
       setOrbState("thinking");
-      setTimeout(() => speakBriefing(), 900);
+      setTimeout(() => respond(query), 600);
     } else if (orbState === "speaking") {
-      // Interrupt JARVIS while speaking
       cancel();
       setOrbState("idle");
     } else {
@@ -63,6 +85,7 @@ function Hud() {
   const menuItems = [
     { to: "/briefing", label: "Briefing Matinal" },
     { to: "/chat", label: "Chat" },
+    { to: "/ai-config", label: "Chave de IA", highlight: !isConfigured },
     { to: "/routines", label: "Rotinas" },
     { to: "/aparelhos", label: "Aparelhos" },
     { to: "/news", label: "Notícias" },
@@ -77,10 +100,6 @@ function Hud() {
       <div className="hud-vignette absolute inset-0" />
       <Particles />
 
-      {/* NOTE: The animated Canvas Orb is rendered globally by <GlobalOrb /> in
-          __root.tsx. It is the dominant visual element on this page. Nothing
-          should cover it. */}
-
       {/* === Top-left: hamburger menu button === */}
       <button
         onClick={() => setMenuOpen(true)}
@@ -91,12 +110,20 @@ function Hud() {
         <Menu className="size-5" />
       </button>
 
-      {/* === Top-right: status badge (minimal — just current state) === */}
-      <div className="fixed right-5 top-5 z-40">
+      {/* === Top-right: status badge === */}
+      <div className="fixed right-5 top-5 z-40 flex items-center gap-2">
+        {!isConfigured && hydrated && (
+          <Link
+            to="/ai-config"
+            className="rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-warning"
+          >
+            Configure IA
+          </Link>
+        )}
         <StatusBadge tone={tone} live>{STATUS_LABEL[orbState]}</StatusBadge>
       </div>
 
-      {/* === Bottom-center: mic toggle button (talk / stop listening) === */}
+      {/* === Bottom-center: mic toggle button === */}
       <div className="fixed bottom-8 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-3">
         <button
           onClick={toggleMic}
@@ -127,13 +154,11 @@ function Hud() {
           aria-modal="true"
           aria-label="Menu de navegação"
         >
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             onClick={() => setMenuOpen(false)}
             aria-hidden
           />
-          {/* Menu panel */}
           <nav className="glass relative flex h-full w-72 max-w-[80vw] flex-col border-r border-border-strong/40 p-5">
             <div className="mb-6 flex items-center justify-between">
               <span className="hud-label text-primary text-glow">J.A.R.V.I.S.</span>
@@ -145,15 +170,37 @@ function Hud() {
                 ✕
               </button>
             </div>
+            {/* AI status indicator at top of menu */}
+            <Link
+              to="/ai-config"
+              onClick={() => setMenuOpen(false)}
+              className={cn(
+                "mb-3 flex items-center gap-2 rounded-lg border px-3 py-2.5 text-xs transition",
+                isConfigured
+                  ? "border-success/30 bg-success/5 text-success/80 hover:bg-success/10"
+                  : "border-warning/40 bg-warning/10 text-warning hover:bg-warning/20"
+              )}
+            >
+              <span className={cn("size-2 rounded-full", isConfigured ? "bg-success" : "bg-warning animate-pulse")} />
+              <span className="flex-1 font-semibold uppercase tracking-wide">
+                {isConfigured ? "IA CONFIGURADA" : "CONFIGURAR IA"}
+              </span>
+            </Link>
             <ul className="flex flex-1 flex-col gap-1.5">
               {menuItems.map((item) => (
                 <li key={item.to}>
                   <Link
                     to={item.to}
                     onClick={() => setMenuOpen(false)}
-                    className="block rounded-lg border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition hover:border-border-strong hover:bg-glass hover:text-primary"
+                    className={cn(
+                      "flex items-center justify-between rounded-lg border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition hover:border-border-strong hover:bg-glass hover:text-primary",
+                      "highlight" in item && item.highlight && "border-warning/30 text-warning hover:bg-warning/10 hover:text-warning"
+                    )}
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {"highlight" in item && item.highlight && (
+                      <span className="size-1.5 rounded-full bg-warning animate-pulse" />
+                    )}
                   </Link>
                 </li>
               ))}

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sun, MessageSquare, Database, Activity, Wallet, ScrollText, Settings, PanelLeft, Hexagon, Zap, Home, Newspaper, Monitor } from "lucide-react";
+import { Sun, MessageSquare, Database, Activity, Wallet, ScrollText, Settings, PanelLeft, Hexagon, Zap, Home, Newspaper, Monitor, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_dashboard")({ component: DashboardLayout });
@@ -8,6 +8,7 @@ export const Route = createFileRoute("/_dashboard")({ component: DashboardLayout
 const items = [
   { to: "/briefing", label: "Briefing", icon: Sun },
   { to: "/chat", label: "Chat", icon: MessageSquare },
+  { to: "/ai-config", label: "Chave de IA", icon: KeyRound },
   { to: "/sources", label: "Fontes", icon: Database },
   { to: "/routines", label: "Rotinas", icon: Zap },
   { to: "/aparelhos", label: "Aparelhos", icon: Home },
