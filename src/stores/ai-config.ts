@@ -51,6 +51,31 @@ const PRE_CONFIGURED_API_KEY =
   (typeof import.meta !== "undefined" &&
     (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PRE_CONFIGURED_API_KEY) || "";
 
+/**
+ * Map of deprecated Gemini model names → their current replacement.
+ * Google periodically renames/removes models. If a user has an old model
+ * persisted in localStorage, we silently upgrade it on rehydrate so calls
+ * don't fail with "model no longer available".
+ */
+const DEPRECATED_MODEL_MAP: Record<string, GeminiModel> = {
+  "gemini-2.0-flash": "gemini-3.8-flash",
+  "gemini-2.5-flash": "gemini-3.8-flash",
+  "gemini-2.5-pro": "gemini-3.1-pro-preview",
+  "gemini-1.5-pro": "gemini-3.1-pro-preview",
+  "gemini-1.5-flash": "gemini-3.8-flash",
+};
+
+/** Returns the model if it's a current valid id, otherwise its migration target. */
+function migrateModel(m: unknown): GeminiModel {
+  if (typeof m !== "string") return "gemini-3.8-flash";
+  if (DEPRECATED_MODEL_MAP[m]) return DEPRECATED_MODEL_MAP[m]!;
+  // also accept any of the currently-listed models
+  const listed = AVAILABLE_MODELS.find((x) => x.id === m);
+  if (listed) return m as GeminiModel;
+  // unknown model → fall back to default
+  return "gemini-3.8-flash";
+}
+
 export const useAIConfig = create<AIConfigStore>()(
   persist(
     (set) => ({
@@ -66,16 +91,20 @@ export const useAIConfig = create<AIConfigStore>()(
     }),
     {
       name: "jarvis-ai-config",
-      // On rehydrate, if the persisted state has no key but we have a pre-configured
-      // one from env, use the pre-configured one. This handles first-visit-after-deploy.
+      version: 2, // bump version so old persisted states are re-migrated
+      // On rehydrate, migrate any deprecated model names + inject env-var key
+      // if the user hasn't set their own.
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AIConfigStore>;
         const apiKey = p.apiKey || PRE_CONFIGURED_API_KEY;
         const configured = p.configured ?? Boolean(apiKey);
+        const model = migrateModel(p.model);
+        const systemPrompt = p.systemPrompt || DEFAULT_SYSTEM_PROMPT;
         return {
           ...current,
-          ...p,
           apiKey,
+          model,
+          systemPrompt,
           configured,
         } as AIConfigStore;
       },
