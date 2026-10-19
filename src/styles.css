@@ -45,14 +45,14 @@
 
 :root {
   --radius: 0.875rem;
-  --background: oklch(0.1 0.008 250);            /* #05070A */
-  --background-secondary: oklch(0.15 0.025 262); /* #0A0F1C */
-  --card: oklch(0.18 0.03 262 / 0.30);           /* rgba(12,18,32,.30) — semi-transparent so the Orb shows through */
+  --background: oklch(0.13 0.04 250);              /* #0c1834 — deep navy, illuminated by orb */
+  --background-secondary: oklch(0.16 0.05 262);    /* #0A0F1C */
+  --card: oklch(0.20 0.04 250 / 0.30);             /* rgba(20,32,64,.30) — semi-transparent so the Orb shows through */
   --card-foreground: oklch(0.96 0.02 240);
   --popover: oklch(0.15 0.025 262);
   --popover-foreground: oklch(0.96 0.02 240);
   --foreground: oklch(0.96 0.02 240);            /* #E8F4FF */
-  --primary: oklch(0.85 0.15 205);               /* #00E5FF */
+  --primary: oklch(0.80 0.16 220);               /* #00BFFF — deep sky blue (matches orb ribbons) */
   --primary-dark: oklch(0.73 0.13 210);          /* #00B8D4 */
   --primary-foreground: oklch(0.1 0.008 250);
   --secondary: oklch(1 0 0 / 0.04);
