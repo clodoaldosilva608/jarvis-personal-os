@@ -1,4 +1,4 @@
-import { createFileRoute, Link, ClientOnly } from "@tanstack/react-router";
+import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CloudSun, CalendarDays, LayoutGrid, Mail, Newspaper, Droplets, Wind, Thermometer, Activity, Heart, Moon, Cpu, Volume2 } from "lucide-react";
 import { Orb } from "@/components/orb/Orb";
@@ -41,6 +41,7 @@ function Hud() {
   const { speak, cancel, speaking: ttsSpeaking, supported: ttsSupported } = useSpeech();
   const [size, setSize] = useState(420);
   const [cat, setCat] = useState<Cat>("email");
+  const hydrated = useHydrated();
 
   // Auto-unlock for demo (remove this for production auth)
   useEffect(() => {
@@ -117,12 +118,12 @@ function Hud() {
         <div style={{ position: 'absolute', inset: '42%', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 0 60px rgba(0,229,255,0.8), 0 0 120px rgba(0,229,255,0.5)' }} />
       </div>
 
-      {/* Canvas orb (on top of CSS rings, after hydration) */}
-      <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1, pointerEvents: 'none' }}>
-        <ClientOnly fallback={null}>
+      {/* Canvas orb (38 strands fiber-bundle — renders after hydration) */}
+      {hydrated && (
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1, pointerEvents: 'none' }}>
           <Orb state={orbState} size={size} className="pointer-events-none" userImage={orbState === "identifying" ? "https://i.pravatar.cc/300?img=12" : undefined} />
-        </ClientOnly>
-      </div>
+        </div>
+      )}
 
       {/* Header: JARVIS + status + dashboard link */}
       <header className="relative z-20 flex w-full items-center justify-between px-4 pt-4 md:px-6">
