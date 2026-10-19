@@ -42,15 +42,52 @@ export function GlobalOrb() {
         pointerEvents: "none",
       }}
     >
-      {/* Soft outer halo — always visible, even during SSR */}
+      {/* Outer atmospheric halo — soft glow visible against dark background */}
       <div
         style={{
           position: "absolute",
-          inset: "-10%",
+          inset: "-15%",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(0,229,255,0.18) 0%, rgba(0,229,255,0.06) 35%, transparent 70%)",
-          filter: "blur(40px)",
+            "radial-gradient(circle, rgba(0,229,255,0.30) 0%, rgba(0,229,255,0.10) 35%, transparent 70%)",
+          filter: "blur(50px)",
+        }}
+      />
+
+      {/* Static bright core — always visible (even before hydration) */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "30%",
+          height: "30%",
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(0,229,255,0.55) 30%, rgba(0,229,255,0.15) 60%, transparent 80%)",
+          filter: "blur(20px)",
+          boxShadow:
+            "0 0 80px rgba(0,229,255,0.55), 0 0 160px rgba(0,229,255,0.30)",
+        }}
+      />
+
+      {/* Decorative rings — visible immediately (no hydration needed) */}
+      <div
+        style={{
+          position: "absolute",
+          inset: "8%",
+          borderRadius: "50%",
+          border: "2px solid rgba(0,229,255,0.35)",
+          boxShadow: "0 0 30px rgba(0,229,255,0.25), inset 0 0 30px rgba(0,229,255,0.15)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: "22%",
+          borderRadius: "50%",
+          border: "1.5px dashed rgba(0,229,255,0.30)",
         }}
       />
 

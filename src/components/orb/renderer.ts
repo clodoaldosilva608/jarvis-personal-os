@@ -6,13 +6,13 @@ interface Node { strand: number; theta: number; speed: number; size: number }
 interface Params { rot: number; speed: number; expand: number; glow: number; hue: number; flash: number }
 
 const TARGETS: Record<OrbState, Omit<Params, "flash">> = {
-  idle: { rot: 0.08, speed: 0.5, expand: 1, glow: 0.7, hue: 0 },
-  listening: { rot: 0.14, speed: 1.1, expand: 1.08, glow: 0.9, hue: 0 },
-  speaking: { rot: 0.12, speed: 0.9, expand: 1.03, glow: 1, hue: 0 },
-  thinking: { rot: 0.45, speed: 1.6, expand: 0.98, glow: 1.3, hue: 0 },
-  identifying: { rot: 0.2, speed: 0.8, expand: 1.05, glow: 0.9, hue: 0 },
-  success: { rot: 0.1, speed: 0.6, expand: 0.9, glow: 1.4, hue: 0 },
-  error: { rot: 0.1, speed: 1.2, expand: 1, glow: 1.1, hue: 1 },
+  idle: { rot: 0.08, speed: 0.5, expand: 1, glow: 1.4, hue: 0 },
+  listening: { rot: 0.14, speed: 1.1, expand: 1.08, glow: 1.8, hue: 0 },
+  speaking: { rot: 0.12, speed: 0.9, expand: 1.03, glow: 2.0, hue: 0 },
+  thinking: { rot: 0.45, speed: 1.6, expand: 0.98, glow: 2.6, hue: 0 },
+  identifying: { rot: 0.2, speed: 0.8, expand: 1.05, glow: 1.8, hue: 0 },
+  success: { rot: 0.1, speed: 0.6, expand: 0.9, glow: 2.8, hue: 0 },
+  error: { rot: 0.1, speed: 1.2, expand: 1, glow: 2.2, hue: 1 },
 };
 
 /** Canvas 2D renderer for the energy-strand orb. Deterministic seeds (no module-scope randomness). */
@@ -81,13 +81,24 @@ export class OrbRenderer {
     ctx.clearRect(0, 0, w, h);
     ctx.globalCompositeOperation = "lighter";
 
-    // core glow
+    // core glow — boosted for visible central halo
     const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.25);
-    core.addColorStop(0, col(0.12 * this.p.glow + this.p.flash * 0.5));
-    core.addColorStop(0.6, col(0.06 * this.p.glow));
+    core.addColorStop(0, col(Math.min(1, 0.32 * this.p.glow + this.p.flash * 0.6)));
+    core.addColorStop(0.4, col(Math.min(1, 0.18 * this.p.glow)));
+    core.addColorStop(0.7, col(Math.min(1, 0.08 * this.p.glow)));
     core.addColorStop(1, col(0));
     ctx.fillStyle = core;
     ctx.fillRect(0, 0, w, h);
+
+    // bright white-hot core dot
+    const hot = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.18);
+    hot.addColorStop(0, "rgba(255,255,255,0.95)");
+    hot.addColorStop(0.5, "rgba(220,250,255,0.55)");
+    hot.addColorStop(1, "rgba(0,229,255,0)");
+    ctx.fillStyle = hot;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.18, 0, Math.PI * 2);
+    ctx.fill();
 
     // speaking waves
     if (this.state === "speaking" && this.t - this.lastWave > 0.5) { this.waves.push(0); this.lastWave = this.t; }
@@ -112,10 +123,12 @@ export class OrbRenderer {
         const x = cx + Math.cos(th + rot) * r, y = cy + Math.sin(th + rot) * r;
         i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-      ctx.strokeStyle = col(s.alpha * 0.25 * this.p.glow);
+      // Wide soft halo stroke
+      ctx.strokeStyle = col(Math.min(1, s.alpha * 0.6 * this.p.glow));
       ctx.lineWidth = s.width * 4 * scale;
       ctx.stroke();
-      ctx.strokeStyle = col(Math.min(1, s.alpha * this.p.glow + this.p.flash * 0.3));
+      // Bright core stroke — boosted for visibility against dark background
+      ctx.strokeStyle = col(Math.min(1, s.alpha * 1.8 * this.p.glow + this.p.flash * 0.5));
       ctx.lineWidth = s.width * scale;
       ctx.stroke();
     }
