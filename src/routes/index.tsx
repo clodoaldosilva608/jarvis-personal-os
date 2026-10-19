@@ -84,6 +84,12 @@ function Hud() {
   const tone = orbState === "error" ? "danger" : orbState === "success" ? "success" : "primary";
 
   return (
+    <>
+      {/* Inline keyframes — guaranteed to load, no CSS dependency */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes jarvis-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes jarvis-pulse { 0%,100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+      `}} />
     <main className="relative flex min-h-screen flex-col items-center overflow-hidden bg-background">
       <div className="hud-grid absolute inset-0" />
       <div className="hud-vignette absolute inset-0" />
@@ -94,21 +100,21 @@ function Hud() {
         position: 'fixed',
         top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: Math.max(size * 1.3, 500), height: Math.max(size * 1.3, 500),
+        width: Math.max(size * 1.4, 550), height: Math.max(size * 1.4, 550),
         zIndex: 0, pointerEvents: 'none',
       }}>
         {/* Outer glow */}
-        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,255,0.35) 0%, rgba(0,229,255,0.12) 30%, transparent 60%)', filter: 'blur(40px)' }} />
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,255,0.4) 0%, rgba(0,229,255,0.15) 30%, transparent 60%)', filter: 'blur(40px)' }} />
         {/* Outer ring */}
-        <div style={{ position: 'absolute', inset: '8%', borderRadius: '50%', border: '2px solid rgba(0,229,255,0.25)', animation: 'spin 20s linear infinite' }} />
+        <div style={{ position: 'absolute', inset: '8%', borderRadius: '50%', border: '3px solid rgba(0,229,255,0.3)', animation: 'jarvis-spin 20s linear infinite' }} />
         {/* Middle ring dashed */}
-        <div style={{ position: 'absolute', inset: '16%', borderRadius: '50%', border: '1px dashed rgba(0,229,255,0.35)', animation: 'spin 15s linear infinite reverse' }} />
+        <div style={{ position: 'absolute', inset: '16%', borderRadius: '50%', border: '2px dashed rgba(0,229,255,0.4)', animation: 'jarvis-spin 15s linear infinite reverse' }} />
         {/* Inner ring */}
-        <div style={{ position: 'absolute', inset: '25%', borderRadius: '50%', border: '1px solid rgba(0,229,255,0.45)', animation: 'spin 10s linear infinite' }} />
+        <div style={{ position: 'absolute', inset: '25%', borderRadius: '50%', border: '2px solid rgba(0,229,255,0.5)', animation: 'jarvis-spin 10s linear infinite' }} />
         {/* Core glow */}
-        <div style={{ position: 'absolute', inset: '33%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(0,229,255,0.5) 30%, transparent 70%)', filter: 'blur(12px)' }} />
+        <div style={{ position: 'absolute', inset: '33%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(0,229,255,0.6) 30%, transparent 70%)', filter: 'blur(15px)', animation: 'jarvis-pulse 2s ease-in-out infinite' }} />
         {/* Bright center */}
-        <div style={{ position: 'absolute', inset: '42%', borderRadius: '50%', background: 'rgba(0,229,255,0.8)', boxShadow: '0 0 50px rgba(0,229,255,0.7), 0 0 100px rgba(0,229,255,0.4)' }} />
+        <div style={{ position: 'absolute', inset: '42%', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 0 60px rgba(0,229,255,0.8), 0 0 120px rgba(0,229,255,0.5)' }} />
       </div>
 
       {/* Canvas orb (on top of CSS rings, after hydration) */}
@@ -270,5 +276,6 @@ function Hud() {
         </div>
       </footer>
     </main>
+    </>
   );
 }
