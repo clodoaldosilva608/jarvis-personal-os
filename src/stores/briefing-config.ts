@@ -19,7 +19,9 @@ interface Store extends BriefingSettings {
 }
 
 export const DEFAULT_SETTINGS: BriefingSettings = {
-  location: "",
+  // Default location matches the timezone below — ensures briefing generation
+  // works out-of-the-box without forcing the user to configure first.
+  location: "Maceió",
   timezone: "America/Maceio",
   agendaSources: [],
   newsTopics: ["tecnologia", "inteligência artificial"],

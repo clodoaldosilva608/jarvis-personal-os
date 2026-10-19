@@ -67,7 +67,13 @@ export function useSpeech(): UseSpeechReturn {
   }, [voices]);
 
   const speak = useCallback((text: string, opts: SpeakOptions = {}) => {
-    if (!supported || !text.trim()) return;
+    if (!supported || !text.trim()) {
+      // TTS not supported — still fire onStart/onEnd so callers can transition
+      // their UI state (otherwise the orb would stay "speaking" forever).
+      opts.onStart?.();
+      setTimeout(() => opts.onEnd?.(), 1500);
+      return;
+    }
 
     // Cancela fala anterior
     window.speechSynthesis.cancel();
@@ -79,22 +85,45 @@ export function useSpeech(): UseSpeechReturn {
     utter.pitch = opts.pitch ?? 1;
     utter.volume = opts.volume ?? 1;
 
+    // Safety net: if onend never fires (no voices, headless browser, OS kill),
+    // auto-fire onEnd after a generous timeout derived from text length.
+    const wordCount = text.trim().split(/\s+/).length;
+    // Average speaking rate: ~150 words/minute = 2.5 words/sec.
+    // Cap at 30s, min 2s.
+    const fallbackMs = Math.max(2000, Math.min(30000, (wordCount / 2.5) * 1000));
+    let ended = false;
+    const safeEnd = () => {
+      if (ended) return;
+      ended = true;
+      setSpeaking(false);
+      opts.onEnd?.();
+    };
+    const fallback = setTimeout(safeEnd, fallbackMs);
+
     utter.onstart = () => {
       setSpeaking(true);
       opts.onStart?.();
     };
     utter.onend = () => {
-      setSpeaking(false);
-      opts.onEnd?.();
+      clearTimeout(fallback);
+      safeEnd();
     };
     utter.onerror = (e) => {
+      clearTimeout(fallback);
       setSpeaking(false);
       opts.onError?.(e);
     };
 
     utterRef.current = utter;
     window.speechSynthesis.speak(utter);
-  }, [supported, pickVoice]);
+
+    // Edge case: if no voices are available, browsers may silently fail to
+    // start. Fire onStart immediately + fallback onEnd to keep UI responsive.
+    if (voices.length === 0) {
+      setSpeaking(true);
+      opts.onStart?.();
+    }
+  }, [supported, pickVoice, voices]);
 
   const cancel = useCallback(() => {
     if (!supported) return;
