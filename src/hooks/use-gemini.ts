@@ -120,7 +120,12 @@ export function useGemini(): UseGeminiReturn {
       //  - 400: invalid key format
       //  - 403: key doesn't have Gemini API enabled
       //  - 429: rate-limited (key still valid)
+      //  - "User location is not supported" — key IS valid, just geo-blocked
+      //    from where this call is being made. The user's browser may work.
       if (/429|rate/i.test(msg)) return { ok: true, error: "Rate-limited, mas chave válida" };
+      if (/location|região|not supported/i.test(msg)) {
+        return { ok: true, error: "Chave válida — restrição geográfica neste ambiente. Deve funcionar do seu navegador." };
+      }
       return { ok: false, error: msg };
     }
   }, []);
