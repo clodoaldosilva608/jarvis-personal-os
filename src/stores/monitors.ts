@@ -29,11 +29,15 @@ interface MonitorsStore {
   scanning: boolean;
   /** Scan progress 0..100. */
   scanProgress: number;
+  /** Real webcam frame captured during the last scan (data URL), if any.
+   *  Used by the Orb renderer to show the user's actual face. */
+  capturedImage: string | null;
   setGlobalLocked: (v: boolean) => void;
   toggleGlobalLock: () => void;
   startScan: () => void;
   setScanProgress: (n: number) => void;
   finishScan: (success: boolean) => void;
+  setCapturedImage: (img: string | null) => void;
   addMonitor: (m: MonitorState) => void;
   removeMonitor: (id: string) => void;
   /** Initialize BroadcastChannel sync. Safe to call multiple times. */
@@ -65,6 +69,7 @@ export const useMonitors = create<MonitorsStore>()(
       monitors: INITIAL_MONITORS,
       scanning: false,
       scanProgress: 0,
+      capturedImage: null,
       setGlobalLocked: (v) => {
         set({ globalLocked: v });
         broadcast({ globalLocked: v, scanning: false, scanProgress: 0 });
@@ -75,7 +80,7 @@ export const useMonitors = create<MonitorsStore>()(
         broadcast({ globalLocked: next, scanning: false, scanProgress: 0 });
       },
       startScan: () => {
-        set({ scanning: true, scanProgress: 0 });
+        set({ scanning: true, scanProgress: 0, capturedImage: null });
         broadcast({ globalLocked: true, scanning: true, scanProgress: 0 });
       },
       setScanProgress: (n) => {
@@ -87,6 +92,7 @@ export const useMonitors = create<MonitorsStore>()(
         set({ scanning: false, scanProgress: success ? 100 : 0, globalLocked: next });
         broadcast({ globalLocked: next, scanning: false, scanProgress: success ? 100 : 0 });
       },
+      setCapturedImage: (img) => set({ capturedImage: img }),
       addMonitor: (m) => set((s) => ({ monitors: [...s.monitors, m] })),
       removeMonitor: (id) => set((s) => ({ monitors: s.monitors.filter((x) => x.id !== id) })),
       initSync: () => {

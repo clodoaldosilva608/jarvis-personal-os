@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useMonitors } from "@/stores/monitors";
 import { useJarvis } from "@/stores/jarvis";
 import { useSpeech } from "@/hooks/use-speech";
-import { DEFAULT_USER_IMAGE } from "@/lib/briefing-data";
+import { useCamera } from "@/hooks/use-camera";
 
 /**
  * useUnlockFlow — orchestrates the multi-monitor unlock sequence.
@@ -12,9 +12,12 @@ import { DEFAULT_USER_IMAGE } from "@/lib/briefing-data";
  * Flow:
  *   1. User says "Jarvis, ativar monitor" / "Jarvis, desbloquear"
  *   2. JARVIS: "Só um instante enquanto confirmo sua identidade."
- *   3. Orb state → "scanning" (face recognition visual)
+ *   3. Orb state → "scanning" + REAL CAMERA ON (face recognition visual)
+ *      We use the device's actual webcam via getUserMedia. If camera is denied
+ *      or unavailable, we fall back to a static default image (in GlobalOrb).
  *   4. Scan progresses 0 → 100 over ~2s
- *   5. On success: all monitors unlock simultaneously via BroadcastChannel
+ *   5. On success: capture a real frame from the webcam (so the orb shows
+ *      the actual user), then unlock all monitors via BroadcastChannel.
  *      Orb state → "success" briefly, then "idle"
  *   6. On failure: orb → "error", monitors stay locked
  */
@@ -22,6 +25,7 @@ export function useUnlockFlow() {
   const monitors = useMonitors();
   const setOrbState = useJarvis((s) => s.setOrbState);
   const { speak, supported: ttsSupported } = useSpeech();
+  const camera = useCamera();
   const [running, setRunning] = useState(false);
   const cancelledRef = useRef(false);
 
@@ -29,6 +33,17 @@ export function useUnlockFlow() {
   useEffect(() => {
     return monitors.initSync();
   }, [monitors]);
+
+  // When scanning starts, also start the camera. When scanning ends, stop it.
+  useEffect(() => {
+    if (monitors.scanning) {
+      void camera.start();
+    } else if (camera.active) {
+      camera.stop();
+    }
+    // We deliberately don't depend on camera.active here to avoid loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [monitors.scanning]);
 
   const speakSync = useCallback((text: string): Promise<void> => {
     return new Promise((resolve) => {
@@ -45,7 +60,6 @@ export function useUnlockFlow() {
   const start = useCallback(async (): Promise<void> => {
     if (running) return;
     if (!monitors.globalLocked) {
-      // Already unlocked — narrate status.
       setOrbState("speaking");
       await speakSync("Sistema já está ativo, senhor. Todos os monitores operando normalmente.");
       setOrbState("idle");
@@ -54,27 +68,43 @@ export function useUnlockFlow() {
     cancelledRef.current = false;
     setRunning(true);
 
-    // Step 1: narrate "Só um instante enquanto confirmo sua identidade."
+    // Step 1: narrate + start scanning
     setOrbState("scanning");
     monitors.startScan();
     await speakSync("Só um instante enquanto confirmo sua identidade.");
-    if (cancelledRef.current) { setRunning(false); return; }
+    if (cancelledRef.current) {
+      camera.stop();
+      setRunning(false);
+      return;
+    }
 
-    // Step 2: scan progress (mock ~2s with progress increments)
+    // Step 2: scan progress
     for (let p = 0; p <= 100; p += 10) {
       if (cancelledRef.current) break;
       monitors.setScanProgress(p);
+      // At 50%, try to capture a real frame from the webcam
+      if (p === 50) {
+        const shot = camera.capture();
+        if (shot) monitors.setCapturedImage(shot);
+      }
       await new Promise((r) => setTimeout(r, 180));
     }
-    if (cancelledRef.current) { setRunning(false); return; }
+    if (cancelledRef.current) {
+      camera.stop();
+      setRunning(false);
+      return;
+    }
 
-    // Step 3: success — unlock all monitors
+    // Step 3: success — final capture attempt, then unlock all monitors
+    const finalShot = camera.capture();
+    if (finalShot) monitors.setCapturedImage(finalShot);
+    camera.stop();
     monitors.finishScan(true);
     setOrbState("success");
     await speakSync("Identidade confirmada. Inicializando todos os monitores.");
     setTimeout(() => setOrbState("idle"), 1500);
     setRunning(false);
-  }, [running, monitors, setOrbState, speakSync]);
+  }, [running, monitors, setOrbState, speakSync, camera]);
 
   const lock = useCallback(async (): Promise<void> => {
     if (running) return;
@@ -89,10 +119,11 @@ export function useUnlockFlow() {
 
   const cancel = useCallback(() => {
     cancelledRef.current = true;
+    camera.stop();
     monitors.finishScan(false);
     setOrbState("idle");
     setRunning(false);
-  }, [monitors, setOrbState]);
+  }, [monitors, setOrbState, camera]);
 
   /** Detect "ativar monitor" / "desbloquear" / "ativar sistema" in arbitrary text. */
   const matchesActivate = useCallback((text: string): boolean => {
@@ -109,11 +140,13 @@ export function useUnlockFlow() {
   }, []);
 
   return {
-    start,         // unlock flow
-    lock,          // lock flow
-    cancel,        // abort mid-scan
+    start,
+    lock,
+    cancel,
     running,
     matchesActivate,
     matchesLock,
+    /** Live camera error message (if camera permission was denied). */
+    cameraError: camera.error,
   };
 }

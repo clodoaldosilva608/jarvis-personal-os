@@ -6,6 +6,7 @@ import { useAIConfig } from "@/stores/ai-config";
 import { useGemini } from "@/hooks/use-gemini";
 import { useMorningBriefing } from "@/hooks/use-morning-briefing";
 import { useJarvis } from "@/stores/jarvis";
+import { loadMessages, saveMessage, clearMessages, type Conversation } from "@/lib/local-db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_dashboard/chat")({
@@ -53,6 +54,16 @@ function ChatPage() {
     }
   }, [messages]);
 
+  // Load persisted history from IndexedDB on mount
+  useEffect(() => {
+    (async () => {
+      const stored = await loadMessages();
+      if (stored.length > 0) {
+        setMessages(stored.map((m: Conversation) => ({ role: m.role, text: m.text })));
+      }
+    })();
+  }, []);
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -75,10 +86,13 @@ function ChatPage() {
     // === Special: "bom dia" → trigger cinematic briefing on the home HUD ===
     if (briefing.matchesGoodMorning(text)) {
       setMessages((prev) => [...prev, { role: "user", text }]);
-      setMessages((prev) => [...prev, { role: "model", text: "Iniciando o briefing matinal. Retornando ao HUD…" }]);
+      const reply = "Iniciando o briefing matinal. Retornando ao HUD…";
+      setMessages((prev) => [...prev, { role: "model", text: reply }]);
+      // Persist both messages to IndexedDB
+      await saveMessage({ createdAt: Date.now(), role: "user", text });
+      await saveMessage({ createdAt: Date.now(), role: "model", text: reply });
       setSending(false);
       setOrbState("idle");
-      // Brief delay so user can read the response, then redirect home and start
       setTimeout(() => {
         navigate({ to: "/" });
         setTimeout(() => briefing.start(), 800);
@@ -92,6 +106,7 @@ function ChatPage() {
       .slice(-12); // keep last 12 turns for context
 
     setMessages((prev) => [...prev, { role: "user", text }, { role: "model", text: "", pending: true }]);
+    await saveMessage({ createdAt: Date.now(), role: "user", text });
 
     try {
       let acc = "";
@@ -112,6 +127,7 @@ function ChatPage() {
         if (last && last.role === "model") next[next.length - 1] = { ...last, pending: false };
         return next;
       });
+      await saveMessage({ createdAt: Date.now(), role: "model", text: acc });
     } catch (e) {
       const err = e as { message?: string };
       const msg = err.message ?? "Erro desconhecido";
@@ -128,7 +144,8 @@ function ChatPage() {
     }
   };
 
-  const clear = () => {
+  const clear = async () => {
+    await clearMessages();
     setMessages([{ role: "model", text: "Sistema online. Como posso ajudar?" }]);
     setError(null);
   };

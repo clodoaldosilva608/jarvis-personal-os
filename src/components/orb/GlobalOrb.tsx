@@ -22,6 +22,7 @@ export function GlobalOrb() {
   const orbState = useJarvis((s) => s.orbState);
   const scanProgress = useMonitors((s) => s.scanProgress);
   const scanning = useMonitors((s) => s.scanning);
+  const capturedImage = useMonitors((s) => s.capturedImage);
   const [size, setSize] = useState(560);
 
   useEffect(() => {
@@ -116,7 +117,9 @@ export function GlobalOrb() {
               size={size}
               className="pointer-events-none"
               scanProgress={scanning ? scanProgress : 0}
-              userImage={(orbState === "identifying" || orbState === "scanning") ? DEFAULT_USER_IMAGE : undefined}
+              userImage={(orbState === "identifying" || orbState === "scanning")
+                ? (capturedImage ?? DEFAULT_USER_IMAGE)
+                : undefined}
             />
           </div>
         )}
