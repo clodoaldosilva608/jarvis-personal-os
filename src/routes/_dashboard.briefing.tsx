@@ -87,7 +87,7 @@ function BriefingPage() {
           <div className="flex gap-2">
             <StatusBadge tone="primary" live>CENTRAL MATINAL</StatusBadge>
             <button
-              onClick={() => navigate({ to: "/briefing/configurar" })}
+              onClick={() => navigate({ to: "/briefing-configurar" })}
               aria-label="Configurar briefing"
               className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-glass text-muted-foreground transition hover:text-primary"
             >
@@ -210,7 +210,7 @@ function BriefingPage() {
           {!cfg.agendaSources.length && (
             <p className="text-sm text-muted-foreground">
               Nenhuma agenda conectada.{" "}
-              <Link to="/briefing/configurar" className="text-primary hover:underline">Adicionar</Link>
+              <Link to="/briefing-configurar" className="text-primary hover:underline">Adicionar</Link>
             </p>
           )}
           <ul className="space-y-2">
@@ -237,7 +237,7 @@ function BriefingPage() {
           {!cfg.emailAccounts.length ? (
             <p className="text-sm text-muted-foreground">
               Nenhuma conta conectada.{" "}
-              <Link to="/briefing/configurar" className="text-primary hover:underline">Adicionar</Link>
+              <Link to="/briefing-configurar" className="text-primary hover:underline">Adicionar</Link>
             </p>
           ) : (
             <div className="space-y-2">

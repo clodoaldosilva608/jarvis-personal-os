@@ -5,7 +5,7 @@ import { GlassCard, NeonButton, SectionHeader } from "@/components/jarvis";
 import { useBriefingConfig, type EmailAccount, type AgendaSource, type SpokenModule, type NewsCount, type PrintRetentionDays } from "@/stores/briefing-config";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_dashboard/briefing/configurar")({
+export const Route = createFileRoute("/_dashboard/briefing-configurar")({
   head: () => ({
     meta: [
       { title: "Configurar Briefing — J.A.R.V.I.S." },

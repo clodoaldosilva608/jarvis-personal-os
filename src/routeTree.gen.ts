@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardAiConfigRouteImport } from './routes/_dashboard.ai-config'
 import { Route as DashboardAparelhosRouteImport } from './routes/_dashboard.aparelhos'
 import { Route as DashboardBriefingRouteImport } from './routes/_dashboard.briefing'
+import { Route as DashboardBriefingConfigurarRouteImport } from './routes/_dashboard.briefing-configurar'
 import { Route as DashboardChatRouteImport } from './routes/_dashboard.chat'
 import { Route as DashboardFinanceRouteImport } from './routes/_dashboard.finance'
 import { Route as DashboardLogsRouteImport } from './routes/_dashboard.logs'
@@ -25,7 +26,6 @@ import { Route as DashboardNewsRouteImport } from './routes/_dashboard.news'
 import { Route as DashboardRoutinesRouteImport } from './routes/_dashboard.routines'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard.settings'
 import { Route as DashboardSourcesRouteImport } from './routes/_dashboard.sources'
-import { Route as DashboardBriefingConfigurarRouteImport } from './routes/_dashboard.briefing.configurar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -56,6 +56,12 @@ const DashboardBriefingRoute = DashboardBriefingRouteImport.update({
   path: '/briefing',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBriefingConfigurarRoute =
+  DashboardBriefingConfigurarRouteImport.update({
+    id: '/briefing-configurar',
+    path: '/briefing-configurar',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardChatRoute = DashboardChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -106,19 +112,14 @@ const DashboardSourcesRoute = DashboardSourcesRouteImport.update({
   path: '/sources',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardBriefingConfigurarRoute =
-  DashboardBriefingConfigurarRouteImport.update({
-    id: '/configurar',
-    path: '/configurar',
-    getParentRoute: () => DashboardBriefingRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/ai-config': typeof DashboardAiConfigRoute
   '/aparelhos': typeof DashboardAparelhosRoute
-  '/briefing': typeof DashboardBriefingRouteWithChildren
+  '/briefing': typeof DashboardBriefingRoute
+  '/briefing-configurar': typeof DashboardBriefingConfigurarRoute
   '/chat': typeof DashboardChatRoute
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
@@ -129,14 +130,14 @@ export interface FileRoutesByFullPath {
   '/routines': typeof DashboardRoutinesRoute
   '/settings': typeof DashboardSettingsRoute
   '/sources': typeof DashboardSourcesRoute
-  '/briefing/configurar': typeof DashboardBriefingConfigurarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/ai-config': typeof DashboardAiConfigRoute
   '/aparelhos': typeof DashboardAparelhosRoute
-  '/briefing': typeof DashboardBriefingRouteWithChildren
+  '/briefing': typeof DashboardBriefingRoute
+  '/briefing-configurar': typeof DashboardBriefingConfigurarRoute
   '/chat': typeof DashboardChatRoute
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
@@ -147,7 +148,6 @@ export interface FileRoutesByTo {
   '/routines': typeof DashboardRoutinesRoute
   '/settings': typeof DashboardSettingsRoute
   '/sources': typeof DashboardSourcesRoute
-  '/briefing/configurar': typeof DashboardBriefingConfigurarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -156,7 +156,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_dashboard/ai-config': typeof DashboardAiConfigRoute
   '/_dashboard/aparelhos': typeof DashboardAparelhosRoute
-  '/_dashboard/briefing': typeof DashboardBriefingRouteWithChildren
+  '/_dashboard/briefing': typeof DashboardBriefingRoute
+  '/_dashboard/briefing-configurar': typeof DashboardBriefingConfigurarRoute
   '/_dashboard/chat': typeof DashboardChatRoute
   '/_dashboard/finance': typeof DashboardFinanceRoute
   '/_dashboard/logs': typeof DashboardLogsRoute
@@ -167,7 +168,6 @@ export interface FileRoutesById {
   '/_dashboard/routines': typeof DashboardRoutinesRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/_dashboard/sources': typeof DashboardSourcesRoute
-  '/_dashboard/briefing/configurar': typeof DashboardBriefingConfigurarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -177,6 +177,7 @@ export interface FileRouteTypes {
     | '/ai-config'
     | '/aparelhos'
     | '/briefing'
+    | '/briefing-configurar'
     | '/chat'
     | '/finance'
     | '/logs'
@@ -187,7 +188,6 @@ export interface FileRouteTypes {
     | '/routines'
     | '/settings'
     | '/sources'
-    | '/briefing/configurar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -195,6 +195,7 @@ export interface FileRouteTypes {
     | '/ai-config'
     | '/aparelhos'
     | '/briefing'
+    | '/briefing-configurar'
     | '/chat'
     | '/finance'
     | '/logs'
@@ -205,7 +206,6 @@ export interface FileRouteTypes {
     | '/routines'
     | '/settings'
     | '/sources'
-    | '/briefing/configurar'
   id:
     | '__root__'
     | '/'
@@ -214,6 +214,7 @@ export interface FileRouteTypes {
     | '/_dashboard/ai-config'
     | '/_dashboard/aparelhos'
     | '/_dashboard/briefing'
+    | '/_dashboard/briefing-configurar'
     | '/_dashboard/chat'
     | '/_dashboard/finance'
     | '/_dashboard/logs'
@@ -224,7 +225,6 @@ export interface FileRouteTypes {
     | '/_dashboard/routines'
     | '/_dashboard/settings'
     | '/_dashboard/sources'
-    | '/_dashboard/briefing/configurar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -275,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/briefing'
       fullPath: '/briefing'
       preLoaderRoute: typeof DashboardBriefingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/briefing-configurar': {
+      id: '/_dashboard/briefing-configurar'
+      path: '/briefing-configurar'
+      fullPath: '/briefing-configurar'
+      preLoaderRoute: typeof DashboardBriefingConfigurarRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/chat': {
@@ -347,31 +354,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSourcesRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/briefing/configurar': {
-      id: '/_dashboard/briefing/configurar'
-      path: '/configurar'
-      fullPath: '/briefing/configurar'
-      preLoaderRoute: typeof DashboardBriefingConfigurarRouteImport
-      parentRoute: typeof DashboardBriefingRoute
-    }
   }
 }
-
-interface DashboardBriefingRouteChildren {
-  DashboardBriefingConfigurarRoute: typeof DashboardBriefingConfigurarRoute
-}
-
-const DashboardBriefingRouteChildren: DashboardBriefingRouteChildren = {
-  DashboardBriefingConfigurarRoute: DashboardBriefingConfigurarRoute,
-}
-
-const DashboardBriefingRouteWithChildren =
-  DashboardBriefingRoute._addFileChildren(DashboardBriefingRouteChildren)
 
 interface DashboardRouteChildren {
   DashboardAiConfigRoute: typeof DashboardAiConfigRoute
   DashboardAparelhosRoute: typeof DashboardAparelhosRoute
-  DashboardBriefingRoute: typeof DashboardBriefingRouteWithChildren
+  DashboardBriefingRoute: typeof DashboardBriefingRoute
+  DashboardBriefingConfigurarRoute: typeof DashboardBriefingConfigurarRoute
   DashboardChatRoute: typeof DashboardChatRoute
   DashboardFinanceRoute: typeof DashboardFinanceRoute
   DashboardLogsRoute: typeof DashboardLogsRoute
@@ -387,7 +377,8 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAiConfigRoute: DashboardAiConfigRoute,
   DashboardAparelhosRoute: DashboardAparelhosRoute,
-  DashboardBriefingRoute: DashboardBriefingRouteWithChildren,
+  DashboardBriefingRoute: DashboardBriefingRoute,
+  DashboardBriefingConfigurarRoute: DashboardBriefingConfigurarRoute,
   DashboardChatRoute: DashboardChatRoute,
   DashboardFinanceRoute: DashboardFinanceRoute,
   DashboardLogsRoute: DashboardLogsRoute,
