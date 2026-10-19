@@ -42,11 +42,10 @@ function Hud() {
   const [size, setSize] = useState(420);
   const [cat, setCat] = useState<Cat>("email");
 
-  // Redirect to login if not unlocked
+  // Auto-unlock for demo (remove this for production auth)
   useEffect(() => {
     if (!isUnlocked) {
-      const stored = localStorage.getItem("jarvis-unlocked");
-      if (!stored) window.location.href = "/login";
+      localStorage.setItem("jarvis-unlocked", "true");
     }
   }, [isUnlocked]);
 
@@ -122,18 +121,26 @@ function Hud() {
       {/* Center: orb behind + dynamic card front */}
       <section className="relative z-10 flex flex-1 w-full items-center justify-center">
         {/* Orb (behind card) */}
+        {/* CSS glow fallback (always visible, even before JS hydrates) */}
+        <div className="absolute z-0" style={{
+          width: size, height: size,
+          background: 'radial-gradient(circle at center, rgba(0,229,255,0.15) 0%, rgba(0,229,255,0.05) 40%, transparent 70%)',
+          borderRadius: '50%',
+          filter: 'blur(20px)',
+        }} />
+        {/* Orb canvas (renders after hydration) */}
         <ClientOnly fallback={<div style={{ width: size, height: size }} />}>
           <Orb
             state={orbState}
             size={size}
-            className="absolute z-0 opacity-90"
+            className="absolute z-1"
             userImage={orbState === "identifying" ? "https://i.pravatar.cc/300?img=12" : undefined}
           />
         </ClientOnly>
 
         {/* Dynamic card (semi-transparent, orb visible behind) */}
         <div className="relative z-10 w-full max-w-md px-4 md:max-w-lg">
-          <GlassCard className="border-border-strong/40 bg-card/35 p-5 backdrop-blur-md">
+          <GlassCard className="border-border-strong/40 bg-card/25 p-5 backdrop-blur-sm">
             {cat === "email" && (
               <div>
                 <p className="hud-label mb-1 text-primary">COMUNICAÇÕES · E-MAIL</p>

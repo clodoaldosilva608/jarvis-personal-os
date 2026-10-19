@@ -61,8 +61,11 @@ function LoginPage() {
       <div className="hud-vignette absolute inset-0" />
       <Particles />
 
-      {/* Orb no fundo */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-30">
+      {/* Orb no fundo + CSS glow fallback */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{
+        background: 'radial-gradient(circle at center, rgba(0,229,255,0.12) 0%, rgba(0,229,255,0.04) 40%, transparent 70%)',
+      }} />
+      <div className="absolute inset-0 flex items-center justify-center opacity-40">
         <Orb state="identifying" size={360} />
       </div>
 
