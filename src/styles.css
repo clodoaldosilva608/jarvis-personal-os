@@ -47,7 +47,7 @@
   --radius: 0.875rem;
   --background: oklch(0.1 0.008 250);            /* #05070A */
   --background-secondary: oklch(0.15 0.025 262); /* #0A0F1C */
-  --card: oklch(0.18 0.03 262 / 0.75);           /* rgba(12,18,32,.75) */
+  --card: oklch(0.18 0.03 262 / 0.30);           /* rgba(12,18,32,.30) — semi-transparent so the Orb shows through */
   --card-foreground: oklch(0.96 0.02 240);
   --popover: oklch(0.15 0.025 262);
   --popover-foreground: oklch(0.96 0.02 240);

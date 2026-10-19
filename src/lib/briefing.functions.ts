@@ -33,15 +33,26 @@ async function getWeather(location: string, timezone: string): Promise<BriefingW
   if (!place) throw new Error(`Localização "${location}" não encontrada`);
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=${encodeURIComponent(timezone || "auto")}`;
   const w = await fetch(url).then((r) => r.json());
+  // Defensive: open-meteo may return shapes we don't expect; validate every field.
+  if (!w || typeof w !== "object") throw new Error("Resposta de clima inválida.");
+  const cur = w.current ?? {};
+  const daily = w.daily ?? {};
+  const todayMin = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min[0] : undefined;
+  const todayMax = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max[0] : undefined;
+  const rainArr = Array.isArray(daily.precipitation_probability_max) ? daily.precipitation_probability_max : [];
+  if (typeof cur.temperature_2m !== "number") throw new Error("Temperatura atual indisponível.");
+  if (typeof todayMin !== "number" || typeof todayMax !== "number") throw new Error("Previsão diária indisponível.");
+  const placeName = (place.name ?? location) as string;
+  const admin1 = typeof place.admin1 === "string" ? place.admin1 : "";
   return {
-    location: `${place.name}${place.admin1 ? `, ${place.admin1}` : ""}`,
-    temp: Math.round(w.current.temperature_2m),
-    min: Math.round(w.daily.temperature_2m_min[0]),
-    max: Math.round(w.daily.temperature_2m_max[0]),
-    humidity: w.current.relative_humidity_2m,
-    windSpeed: Math.round(w.current.wind_speed_10m),
-    rainChance: w.daily.precipitation_probability_max[0] ?? 0,
-    condition: WMO[w.current.weather_code as number] ?? "—",
+    location: admin1 ? `${placeName}, ${admin1}` : placeName,
+    temp: Math.round(cur.temperature_2m),
+    min: Math.round(todayMin),
+    max: Math.round(todayMax),
+    humidity: typeof cur.relative_humidity_2m === "number" ? cur.relative_humidity_2m : 0,
+    windSpeed: typeof cur.wind_speed_10m === "number" ? Math.round(cur.wind_speed_10m) : 0,
+    rainChance: typeof rainArr[0] === "number" ? rainArr[0] : 0,
+    condition: WMO[cur.weather_code as number] ?? "—",
   };
 }
 

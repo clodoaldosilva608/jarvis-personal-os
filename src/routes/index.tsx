@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CloudSun, CalendarDays, LayoutGrid, Mail, Newspaper, Droplets, Wind, Thermometer, Activity, Heart, Moon, Cpu, Volume2 } from "lucide-react";
-import { Orb } from "@/components/orb/Orb";
 import { GlassCard, MicButton, StatusBadge, Waveform } from "@/components/jarvis";
 import { Particles } from "@/components/jarvis/Particles";
 import { useJarvis, STATUS_LABEL } from "@/stores/jarvis";
@@ -39,7 +38,6 @@ function Hud() {
   const { orbState, setOrbState, isUnlocked } = useJarvis();
   const { location } = useBriefingConfig();
   const { speak, cancel, speaking: ttsSpeaking, supported: ttsSupported } = useSpeech();
-  const [size, setSize] = useState(420);
   const [cat, setCat] = useState<Cat>("email");
   const hydrated = useHydrated();
 
@@ -49,13 +47,6 @@ function Hud() {
       localStorage.setItem("jarvis-unlocked", "true");
     }
   }, [isUnlocked]);
-
-  useEffect(() => {
-    const f = () => setSize(Math.min(window.innerWidth * 0.7, window.innerHeight * 0.4, 480));
-    f();
-    window.addEventListener("resize", f);
-    return () => window.removeEventListener("resize", f);
-  }, []);
 
   // Speak briefing when category changes or orb is speaking
   const speakBriefing = () => {
@@ -85,45 +76,14 @@ function Hud() {
   const tone = orbState === "error" ? "danger" : orbState === "success" ? "success" : "primary";
 
   return (
-    <>
-      {/* Inline keyframes — guaranteed to load, no CSS dependency */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes jarvis-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes jarvis-pulse { 0%,100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
-      `}} />
     <main className="relative flex min-h-screen flex-col items-center overflow-hidden bg-background">
       <div className="hud-grid absolute inset-0" />
       <div className="hud-vignette absolute inset-0" />
       <Particles />
 
-      {/* === ORB as fixed background — always visible, behind everything === */}
-      <div style={{
-        position: 'fixed',
-        top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: Math.max(size * 1.4, 550), height: Math.max(size * 1.4, 550),
-        zIndex: 0, pointerEvents: 'none',
-      }}>
-        {/* Outer glow */}
-        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,255,0.4) 0%, rgba(0,229,255,0.15) 30%, transparent 60%)', filter: 'blur(40px)' }} />
-        {/* Outer ring */}
-        <div style={{ position: 'absolute', inset: '8%', borderRadius: '50%', border: '3px solid rgba(0,229,255,0.3)', animation: 'jarvis-spin 20s linear infinite' }} />
-        {/* Middle ring dashed */}
-        <div style={{ position: 'absolute', inset: '16%', borderRadius: '50%', border: '2px dashed rgba(0,229,255,0.4)', animation: 'jarvis-spin 15s linear infinite reverse' }} />
-        {/* Inner ring */}
-        <div style={{ position: 'absolute', inset: '25%', borderRadius: '50%', border: '2px solid rgba(0,229,255,0.5)', animation: 'jarvis-spin 10s linear infinite' }} />
-        {/* Core glow */}
-        <div style={{ position: 'absolute', inset: '33%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(0,229,255,0.6) 30%, transparent 70%)', filter: 'blur(15px)', animation: 'jarvis-pulse 2s ease-in-out infinite' }} />
-        {/* Bright center */}
-        <div style={{ position: 'absolute', inset: '42%', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', boxShadow: '0 0 60px rgba(0,229,255,0.8), 0 0 120px rgba(0,229,255,0.5)' }} />
-      </div>
-
-      {/* Canvas orb (38 strands fiber-bundle — renders after hydration) */}
-      {hydrated && (
-        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1, pointerEvents: 'none' }}>
-          <Orb state={orbState} size={size} className="pointer-events-none" userImage={orbState === "identifying" ? "https://i.pravatar.cc/300?img=12" : undefined} />
-        </div>
-      )}
+      {/* NOTE: The animated Canvas Orb is now rendered globally by <GlobalOrb />
+          in __root.tsx — it appears as a fixed background behind every page,
+          including this one. No need to render it here. */}
 
       {/* Header: JARVIS + status + dashboard link */}
       <header className="relative z-20 flex w-full items-center justify-between px-4 pt-4 md:px-6">
@@ -156,7 +116,7 @@ function Hud() {
 
       {/* Center: dynamic card (orb is behind as fixed background) */}
       <section className="relative z-10 flex flex-1 w-full items-center justify-center">
-        {/* Dynamic card (semi-transparent, orb visible behind) */}
+        {/* Dynamic card (very transparent so the Orb is clearly visible behind) */}
         <div className="relative z-10 w-full max-w-md px-4 md:max-w-lg">
           <GlassCard className="border-border-strong/40 bg-card/20 p-5 backdrop-blur-sm">
             {cat === "email" && (
@@ -277,6 +237,5 @@ function Hud() {
         </div>
       </footer>
     </main>
-    </>
   );
 }
