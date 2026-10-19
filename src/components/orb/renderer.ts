@@ -59,31 +59,31 @@ export class OrbRenderer {
     this.ctx = canvas.getContext("2d")!;
     let seed = 13;
     const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    // 12 main ribbons — wide flowing bands (not 38 thin lines)
-    for (let i = 0; i < 12; i++) {
+    // 8 wide flowing ribbons — sparse & ethereal (matches reference better than 12)
+    for (let i = 0; i < 8; i++) {
       this.ribbons.push({
         amps: [
-          0.08 + rnd() * 0.10,
-          0.04 + rnd() * 0.08,
-          0.02 + rnd() * 0.04,
+          0.10 + rnd() * 0.12,
+          0.05 + rnd() * 0.08,
+          0.025 + rnd() * 0.04,
         ],
         phases: [rnd() * 6.28, rnd() * 6.28, rnd() * 6.28],
         speeds: [(rnd() - 0.5) * 0.9, (rnd() - 0.5) * 1.3, (rnd() - 0.5) * 1.7],
-        width: 1.2 + rnd() * 2.4,
+        width: 0.8 + rnd() * 1.6,
         peak: 0.55 + rnd() * 0.45,
-        rotation: (i / 12) * Math.PI * 2 + (rnd() - 0.5) * 0.3,
-        radialOffset: (rnd() - 0.5) * 0.10,
-        hueShift: (rnd() - 0.5) * 0.4,
+        rotation: (i / 8) * Math.PI * 2 + (rnd() - 0.5) * 0.4,
+        radialOffset: (rnd() - 0.5) * 0.12,
+        hueShift: (rnd() - 0.5) * 0.5,
       });
     }
-    // 5 asymmetric hotspot nodes
-    const nodeAngles = [0.4, 1.7, 2.9, 4.3, 5.5];
-    for (let i = 0; i < 5; i++) {
+    // 4 asymmetric hotspot nodes (not 5, asymmetrically placed)
+    const nodeAngles = [0.6, 2.1, 3.8, 5.4];
+    for (let i = 0; i < 4; i++) {
       this.nodes.push({
-        ribbon: Math.floor(rnd() * 12),
-        theta: nodeAngles[i]! + (rnd() - 0.5) * 0.2,
-        speed: 0.15 + rnd() * 0.30,
-        size: 0.9 + rnd() * 0.5,
+        ribbon: Math.floor(rnd() * 8),
+        theta: nodeAngles[i]! + (rnd() - 0.5) * 0.4,
+        speed: 0.12 + rnd() * 0.28,
+        size: 0.8 + rnd() * 0.6,
       });
     }
   }
@@ -190,8 +190,8 @@ export class OrbRenderer {
         const [x, y] = pts[i]!;
         i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-      ctx.strokeStyle = this.col(r.peak * 0.10 * this.p.glow, r.hueShift);
-      ctx.lineWidth = r.width * 7 * scale;
+      ctx.strokeStyle = this.col(r.peak * 0.08 * this.p.glow, r.hueShift);
+      ctx.lineWidth = r.width * 5 * scale;
       ctx.stroke();
 
       // (b) Mid glow stroke
@@ -200,8 +200,8 @@ export class OrbRenderer {
         const [x, y] = pts[i]!;
         i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-      ctx.strokeStyle = this.col(r.peak * 0.30 * this.p.glow, r.hueShift);
-      ctx.lineWidth = r.width * 2.5 * scale;
+      ctx.strokeStyle = this.col(r.peak * 0.25 * this.p.glow, r.hueShift);
+      ctx.lineWidth = r.width * 1.8 * scale;
       ctx.stroke();
 
       // (c) Bright core stroke — thin and sharp
@@ -210,8 +210,8 @@ export class OrbRenderer {
         const [x, y] = pts[i]!;
         i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-      ctx.strokeStyle = this.col(Math.min(1, r.peak * 0.85 * this.p.glow + this.p.flash * 0.4), r.hueShift + 0.3);
-      ctx.lineWidth = r.width * 0.7 * scale;
+      ctx.strokeStyle = this.col(Math.min(1, r.peak * 0.80 * this.p.glow + this.p.flash * 0.4), r.hueShift + 0.3);
+      ctx.lineWidth = r.width * 0.5 * scale;
       ctx.stroke();
     }
 
@@ -242,14 +242,15 @@ export class OrbRenderer {
       ctx.fill();
     }
 
-    // === Layer 6: white-hot center dot (the "arc reactor" core) ===
-    const hot = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.15);
-    hot.addColorStop(0, "rgba(255,255,255,0.95)");
-    hot.addColorStop(0.4, this.col(0.65, +0.7));
+    // === Layer 6: subtle center glow (NOT a bright white dot — reference has a darker center) ===
+    // Keep just a soft, faint blue hint in the middle to give depth.
+    const hot = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.30);
+    hot.addColorStop(0, this.col(0.20 * this.p.glow, +0.4));
+    hot.addColorStop(0.5, this.col(0.08 * this.p.glow, 0));
     hot.addColorStop(1, this.col(0, 0));
     ctx.fillStyle = hot;
     ctx.beginPath();
-    ctx.arc(cx, cy, R * 0.15, 0, Math.PI * 2);
+    ctx.arc(cx, cy, R * 0.30, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.globalCompositeOperation = "source-over";

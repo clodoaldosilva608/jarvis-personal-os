@@ -91,21 +91,21 @@ export function GlobalOrb() {
           }}
         />
 
-        {/* Layer C — Static bright white-hot core (always visible, even pre-hydration) */}
+        {/* Layer C — Soft central glow (subtle, NOT a bright "sun" — reference has a darker center) */}
         <div
           style={{
             position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: "22%",
-            height: "22%",
+            width: "30%",
+            height: "30%",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(255,255,255,0.90) 0%, rgba(180,210,255,0.55) 25%, rgba(20,90,220,0.30) 55%, rgba(20,60,180,0.10) 75%, transparent 90%)",
-            filter: "blur(15px)",
+              "radial-gradient(circle, rgba(180,210,255,0.30) 0%, rgba(20,90,220,0.18) 35%, rgba(20,60,180,0.06) 65%, transparent 85%)",
+            filter: "blur(20px)",
             boxShadow:
-              "0 0 80px rgba(20,90,220,0.55), 0 0 160px rgba(20,90,220,0.30), 0 0 240px rgba(20,60,180,0.20)",
+              "0 0 60px rgba(20,90,220,0.35), 0 0 120px rgba(20,90,220,0.20)",
           }}
         />
 
