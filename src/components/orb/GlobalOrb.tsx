@@ -49,7 +49,7 @@ export function GlobalOrb() {
           zIndex: -2,
           pointerEvents: "none",
           background:
-            "radial-gradient(ellipse at center, #0c1834 0%, #050a1a 55%, #02050f 100%)",
+            "radial-gradient(ellipse at center, #0a1430 0%, #050a1c 50%, #020410 100%)",
         }}
       />
 
@@ -67,27 +67,27 @@ export function GlobalOrb() {
           pointerEvents: "none",
         }}
       >
-        {/* Layer A — Wide atmospheric halo (the "aura" that bleeds into bg) */}
+        {/* Layer A — Wide atmospheric halo (deep electric blue, not cyan) */}
         <div
           style={{
             position: "absolute",
-            inset: "-25%",
+            inset: "-30%",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(0,191,255,0.30) 0%, rgba(0,140,210,0.12) 35%, transparent 70%)",
-            filter: "blur(60px)",
+              "radial-gradient(circle, rgba(20,90,220,0.30) 0%, rgba(20,60,180,0.12) 35%, transparent 70%)",
+            filter: "blur(70px)",
           }}
         />
 
-        {/* Layer B — Mid-range cyan glow ring */}
+        {/* Layer B — Mid-range blue glow ring */}
         <div
           style={{
             position: "absolute",
-            inset: "-5%",
+            inset: "-8%",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(0,191,255,0.20) 30%, rgba(0,191,255,0.08) 50%, transparent 70%)",
-            filter: "blur(30px)",
+              "radial-gradient(circle, rgba(20,90,220,0.20) 30%, rgba(20,90,220,0.08) 50%, transparent 70%)",
+            filter: "blur(35px)",
           }}
         />
 
@@ -98,42 +98,34 @@ export function GlobalOrb() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: "26%",
-            height: "26%",
+            width: "22%",
+            height: "22%",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(180,235,255,0.55) 25%, rgba(0,191,255,0.30) 55%, rgba(0,140,210,0.10) 75%, transparent 90%)",
+              "radial-gradient(circle, rgba(255,255,255,0.90) 0%, rgba(180,210,255,0.55) 25%, rgba(20,90,220,0.30) 55%, rgba(20,60,180,0.10) 75%, transparent 90%)",
             filter: "blur(15px)",
             boxShadow:
-              "0 0 80px rgba(0,191,255,0.55), 0 0 160px rgba(0,191,255,0.30), 0 0 240px rgba(0,140,210,0.20)",
+              "0 0 80px rgba(20,90,220,0.55), 0 0 160px rgba(20,90,220,0.30), 0 0 240px rgba(20,60,180,0.20)",
           }}
         />
 
-        {/* Layer D — Decorative rings (visible immediately, no hydration needed) */}
+        {/* Layer D — Decorative rings (very subtle, just hints of structure) */}
         <div
           style={{
             position: "absolute",
-            inset: "6%",
+            inset: "8%",
             borderRadius: "50%",
-            border: "1.5px solid rgba(0,191,255,0.30)",
+            border: "1px solid rgba(20,90,220,0.20)",
             boxShadow:
-              "0 0 30px rgba(0,191,255,0.20), inset 0 0 30px rgba(0,191,255,0.10)",
+              "0 0 20px rgba(20,90,220,0.15), inset 0 0 20px rgba(20,90,220,0.08)",
           }}
         />
         <div
           style={{
             position: "absolute",
-            inset: "18%",
+            inset: "22%",
             borderRadius: "50%",
-            border: "1px dashed rgba(0,191,255,0.22)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: "30%",
-            borderRadius: "50%",
-            border: "0.5px solid rgba(0,191,255,0.18)",
+            border: "1px dashed rgba(20,90,220,0.15)",
           }}
         />
 

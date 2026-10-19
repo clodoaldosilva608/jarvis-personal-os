@@ -52,7 +52,7 @@
   --popover: oklch(0.15 0.025 262);
   --popover-foreground: oklch(0.96 0.02 240);
   --foreground: oklch(0.96 0.02 240);            /* #E8F4FF */
-  --primary: oklch(0.80 0.16 220);               /* #00BFFF — deep sky blue (matches orb ribbons) */
+  --primary: oklch(0.55 0.20 260);               /* #145ADC — deep electric blue (matches orb ribbons) */
   --primary-dark: oklch(0.73 0.13 210);          /* #00B8D4 */
   --primary-foreground: oklch(0.1 0.008 250);
   --secondary: oklch(1 0 0 / 0.04);
@@ -109,9 +109,11 @@
   font-weight: 600;
 }
 @utility hud-grid {
+  /* Subtle, almost invisible grid — the Lovable reference doesn't have one,
+     so we keep it extremely faint just for the HUD vibe. */
   background-image:
-    linear-gradient(oklch(0.85 0.15 205 / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.85 0.15 205 / 0.05) 1px, transparent 1px);
+    linear-gradient(oklch(0.85 0.15 220 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.85 0.15 220 / 0.025) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 @utility hud-vignette {

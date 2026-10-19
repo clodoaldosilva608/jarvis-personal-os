@@ -103,14 +103,14 @@ export class OrbRenderer {
     return val * R;
   }
 
-  // Color: HSL(210°, ~90%, ~75%) = deep sky blue, with optional hue shift
-  // toward white (hueShift > 0) or deeper blue (hueShift < 0).
+  // Color: deep electric blue / indigo (matches Lovable reference).
+  // Baseline rgb(20, 90, 220). Hue shift > 0 → toward white.
+  // Less saturated than cyan, more "midnight electric" feel.
   private col(a: number, hueShift = 0) {
-    // baseline: deep sky blue (0, 191, 255). Shift toward white when hueShift>0.
     const shift = Math.max(-1, Math.min(1, hueShift));
-    const r = Math.round(0 + (255 - 0) * Math.max(0, shift));
-    const g = Math.round(191 + (255 - 191) * Math.max(0, shift));
-    const b = 255;
+    const r = Math.round(20 + (255 - 20) * Math.max(0, shift));
+    const g = Math.round(90 + (255 - 90) * Math.max(0, shift));
+    const b = Math.round(220 + (255 - 220) * Math.max(0, shift));
     return `rgba(${r},${g},${b},${Math.max(0, Math.min(1, a))})`;
   }
 
@@ -168,8 +168,9 @@ export class OrbRenderer {
     //   (a) wide soft halo (low alpha, large line width)
     //   (b) mid glow (medium alpha, medium width)
     //   (c) bright core (high alpha, thin) — produces the "liquid light" look
+    // Widths are tuned to be ethereal and airy, not chunky.
     const scale = w / 600;
-    const steps = 180; // smooth curves
+    const steps = 200; // smooth curves
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     for (const r of this.ribbons) {
@@ -183,14 +184,14 @@ export class OrbRenderer {
         pts.push([x, y]);
       }
 
-      // (a) Wide soft halo stroke
+      // (a) Wide soft halo stroke — airy outer glow
       ctx.beginPath();
       for (let i = 0; i < pts.length; i++) {
         const [x, y] = pts[i]!;
         i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-      ctx.strokeStyle = this.col(r.peak * 0.18 * this.p.glow, r.hueShift);
-      ctx.lineWidth = r.width * 14 * scale;
+      ctx.strokeStyle = this.col(r.peak * 0.10 * this.p.glow, r.hueShift);
+      ctx.lineWidth = r.width * 7 * scale;
       ctx.stroke();
 
       // (b) Mid glow stroke
@@ -199,18 +200,18 @@ export class OrbRenderer {
         const [x, y] = pts[i]!;
         i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-      ctx.strokeStyle = this.col(r.peak * 0.45 * this.p.glow, r.hueShift);
-      ctx.lineWidth = r.width * 5 * scale;
+      ctx.strokeStyle = this.col(r.peak * 0.30 * this.p.glow, r.hueShift);
+      ctx.lineWidth = r.width * 2.5 * scale;
       ctx.stroke();
 
-      // (c) Bright core stroke
+      // (c) Bright core stroke — thin and sharp
       ctx.beginPath();
       for (let i = 0; i < pts.length; i++) {
         const [x, y] = pts[i]!;
         i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
       }
-      ctx.strokeStyle = this.col(Math.min(1, r.peak * 0.95 * this.p.glow + this.p.flash * 0.4), r.hueShift + 0.3);
-      ctx.lineWidth = r.width * 1.5 * scale;
+      ctx.strokeStyle = this.col(Math.min(1, r.peak * 0.85 * this.p.glow + this.p.flash * 0.4), r.hueShift + 0.3);
+      ctx.lineWidth = r.width * 0.7 * scale;
       ctx.stroke();
     }
 
