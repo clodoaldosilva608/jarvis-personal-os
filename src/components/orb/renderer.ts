@@ -22,13 +22,14 @@ interface Params { rot: number; speed: number; expand: number; glow: number; fla
 
 // Lower glow values look darker; the bright halo comes from the wide blur strokes below.
 const TARGETS: Record<OrbState, Omit<Params, "flash">> = {
-  idle:       { rot: 0.10, speed: 0.35, expand: 1.00, glow: 1.0 },
-  listening:  { rot: 0.18, speed: 0.85, expand: 1.06, glow: 1.4 },
-  speaking:   { rot: 0.16, speed: 0.70, expand: 1.03, glow: 1.6 },
-  thinking:   { rot: 0.55, speed: 1.30, expand: 0.96, glow: 2.0 },
-  identifying:{ rot: 0.25, speed: 0.65, expand: 1.05, glow: 1.4 },
-  success:    { rot: 0.14, speed: 0.50, expand: 0.92, glow: 2.2 },
-  error:      { rot: 0.20, speed: 1.10, expand: 1.00, glow: 1.6 },
+  idle:        { rot: 0.10, speed: 0.35, expand: 1.00, glow: 1.0 },
+  listening:   { rot: 0.18, speed: 0.85, expand: 1.06, glow: 1.4 },
+  speaking:    { rot: 0.16, speed: 0.70, expand: 1.03, glow: 1.6 },
+  thinking:    { rot: 0.55, speed: 1.30, expand: 0.96, glow: 2.0 },
+  identifying: { rot: 0.25, speed: 0.65, expand: 1.05, glow: 1.4 },
+  scanning:    { rot: 0.35, speed: 1.10, expand: 0.92, glow: 1.8 },
+  success:     { rot: 0.14, speed: 0.50, expand: 0.92, glow: 2.2 },
+  error:       { rot: 0.20, speed: 1.10, expand: 1.00, glow: 1.6 },
 };
 
 /**
@@ -239,9 +240,9 @@ export class OrbRenderer {
 
     ctx.globalCompositeOperation = "source-over";
 
-    // === Layer 7 (state-specific): Face ID scan ring when identifying ===
-    if (this.state === "identifying") {
-      const ir = R * 0.62;
+    // === Layer 7 (state-specific): Face ID scan ===
+    if (this.state === "identifying" || this.state === "scanning") {
+      const ir = R * (this.state === "scanning" ? 0.58 : 0.62);
       // Background tint behind the photo to make it stand out
       const bgG = ctx.createRadialGradient(cx, cy, 0, cx, cy, ir * 1.05);
       bgG.addColorStop(0, this.col(0.15, +0.3));
@@ -272,8 +273,9 @@ export class OrbRenderer {
         ctx.fillStyle = this.col(0.08);
         ctx.fillRect(cx - ir, cy - ir, ir * 2, ir * 2);
       }
-      // Horizontal scan line
-      const sy = cy - ir + ((this.t * 0.8) % 1) * ir * 2;
+      // Horizontal scan line — faster for `scanning` state
+      const scanSpeed = this.state === "scanning" ? 1.6 : 0.8;
+      const sy = cy - ir + ((this.t * scanSpeed) % 1) * ir * 2;
       const lg = ctx.createLinearGradient(0, sy - 30 * scale, 0, sy);
       lg.addColorStop(0, this.col(0));
       lg.addColorStop(0.6, this.col(0.4, +0.5));
@@ -282,19 +284,33 @@ export class OrbRenderer {
       ctx.fillRect(cx - ir, sy - 30 * scale, ir * 2, 30 * scale);
       ctx.restore();
 
-      // Decorative scan rings
-      ctx.lineWidth = 2 * scale;
+      // Decorative scan rings — for `scanning` state, draw a closing arc that
+      // visualizes scan progress (read from this.scanProgress).
+      ctx.lineWidth = 2.5 * scale;
       ctx.strokeStyle = this.col(0.95, +0.5);
       ctx.beginPath();
-      ctx.arc(cx, cy, ir + 8 * scale, this.t * 3, this.t * 3 + Math.PI * 1.4);
+      // Arc that fills from 0% to 100% as scan progresses (default to 0).
+      const progress = (this as unknown as { scanProgress?: number }).scanProgress ?? 0;
+      const arcEnd = (progress / 100) * Math.PI * 2 - Math.PI / 2;
+      if (arcEnd > -Math.PI / 2) {
+        ctx.arc(cx, cy, ir + 12 * scale, -Math.PI / 2, arcEnd);
+        ctx.stroke();
+      }
+      // Background ring (faint)
+      ctx.strokeStyle = this.col(0.15);
+      ctx.lineWidth = 1.5 * scale;
+      ctx.beginPath();
+      ctx.arc(cx, cy, ir + 12 * scale, 0, Math.PI * 2);
       ctx.stroke();
+      // Counter-rotating thin ring
       ctx.strokeStyle = this.col(0.4);
       ctx.lineWidth = 1.5 * scale;
       ctx.beginPath();
-      ctx.arc(cx, cy, ir + 16 * scale, -this.t * 2, -this.t * 2 + Math.PI * 0.6);
+      ctx.arc(cx, cy, ir + 22 * scale, -this.t * 2, -this.t * 2 + Math.PI * 0.6);
       ctx.stroke();
+
       // Corner brackets (Face ID style)
-      const br = ir + 24 * scale;
+      const br = ir + 30 * scale;
       const bl = 18 * scale;
       ctx.strokeStyle = this.col(0.85, +0.5);
       ctx.lineWidth = 2.5 * scale;
@@ -308,6 +324,18 @@ export class OrbRenderer {
         ctx.lineTo(px + sx * -bl, py);
         ctx.stroke();
       }
+
+      // Percentage text (only in scanning state)
+      if (this.state === "scanning" && progress > 0) {
+        ctx.fillStyle = this.col(0.95, +0.7);
+        ctx.font = `bold ${18 * scale}px "JetBrains Mono", monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${Math.round(progress)}%`, cx, cy + ir + 50 * scale);
+      }
     }
   }
+
+  /** Scan progress 0..100 — read by the renderer when state === "scanning". */
+  scanProgress = 0;
 }

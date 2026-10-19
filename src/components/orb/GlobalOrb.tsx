@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useHydrated } from "@tanstack/react-router";
 import { Orb } from "./Orb";
 import { useJarvis } from "@/stores/jarvis";
+import { useMonitors } from "@/stores/monitors";
 import { DEFAULT_USER_IMAGE } from "@/lib/briefing-data";
 
 /**
@@ -19,6 +20,8 @@ import { DEFAULT_USER_IMAGE } from "@/lib/briefing-data";
 export function GlobalOrb() {
   const hydrated = useHydrated();
   const orbState = useJarvis((s) => s.orbState);
+  const scanProgress = useMonitors((s) => s.scanProgress);
+  const scanning = useMonitors((s) => s.scanning);
   const [size, setSize] = useState(560);
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export function GlobalOrb() {
 
         {/* Layer D — (no decorative rings — they would clutter the ethereal look) */}
 
-        {/* Layer E — Canvas orb (10 ribbons + 5 hotspot nodes + Face ID when identifying) */}
+        {/* Layer E — Canvas orb (10 ribbons + 5 hotspot nodes + Face ID when identifying/scanning) */}
         {hydrated && (
           <div
             style={{
@@ -112,7 +115,8 @@ export function GlobalOrb() {
               state={orbState}
               size={size}
               className="pointer-events-none"
-              userImage={orbState === "identifying" ? DEFAULT_USER_IMAGE : undefined}
+              scanProgress={scanning ? scanProgress : 0}
+              userImage={(orbState === "identifying" || orbState === "scanning") ? DEFAULT_USER_IMAGE : undefined}
             />
           </div>
         )}

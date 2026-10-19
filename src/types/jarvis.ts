@@ -1,4 +1,4 @@
-export type OrbState = "idle" | "listening" | "speaking" | "thinking" | "identifying" | "success" | "error";
+export type OrbState = "idle" | "listening" | "speaking" | "thinking" | "identifying" | "scanning" | "success" | "error";
 
 export interface User { id: string; name: string; faceEmbedding?: number[]; preferredVoice: string }
 

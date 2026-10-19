@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, Mic, MicOff, X } from "lucide-react";
+import { Menu, Mic, MicOff, X, Lock, Unlock, Scan } from "lucide-react";
 import { StatusBadge } from "@/components/jarvis";
 import { Particles } from "@/components/jarvis/Particles";
 import { BriefingOverlay } from "@/components/briefing/BriefingOverlay";
@@ -8,6 +8,8 @@ import { useJarvis, STATUS_LABEL } from "@/stores/jarvis";
 import { useSpeech } from "@/hooks/use-speech";
 import { useGemini } from "@/hooks/use-gemini";
 import { useMorningBriefing } from "@/hooks/use-morning-briefing";
+import { useUnlockFlow } from "@/hooks/use-unlock-flow";
+import { useMonitors } from "@/stores/monitors";
 import { useAIConfig } from "@/stores/ai-config";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +30,10 @@ function Hud() {
   const { speak, cancel, supported: ttsSupported } = useSpeech();
   const { generate, isConfigured } = useGemini();
   const briefing = useMorningBriefing();
+  const unlockFlow = useUnlockFlow();
+  const globalLocked = useMonitors((s) => s.globalLocked);
+  const scanning = useMonitors((s) => s.scanning);
+  const scanProgress = useMonitors((s) => s.scanProgress);
   const [menuOpen, setMenuOpen] = useState(false);
   const [lastQuery] = useState<string | null>(null);
   const hydrated = useHydrated();
@@ -36,11 +42,19 @@ function Hud() {
     if (!isUnlocked) localStorage.setItem("jarvis-unlocked", "true");
   }, [isUnlocked]);
 
-  // Trigger morning briefing if user said "bom dia"; otherwise Gemini.
+  // Trigger morning briefing if user said "bom dia"; unlock/lock if "ativar monitor"; otherwise Gemini.
   const respond = async (query: string) => {
     if (!query.trim()) return;
     if (briefing.matchesGoodMorning(query)) {
       briefing.start();
+      return;
+    }
+    if (unlockFlow.matchesActivate(query)) {
+      unlockFlow.start();
+      return;
+    }
+    if (unlockFlow.matchesLock(query)) {
+      unlockFlow.lock();
       return;
     }
     if (!isConfigured) {
@@ -69,11 +83,15 @@ function Hud() {
       briefing.cancel();
       return;
     }
+    if (unlockFlow.running) {
+      unlockFlow.cancel();
+      return;
+    }
     if (orbState === "listening") {
       const query = lastQuery ?? "Bom dia. Pode me dar o briefing de hoje?";
       setOrbState("thinking");
       setTimeout(() => respond(query), 600);
-    } else if (orbState === "speaking") {
+    } else if (orbState === "speaking" || orbState === "scanning") {
       cancel();
       setOrbState("idle");
     } else {
@@ -97,11 +115,11 @@ function Hud() {
     { to: "/settings", label: "Configurações" },
   ] as const;
 
-  const micLabel = briefing.running
+  const micLabel = briefing.running || unlockFlow.running
     ? "Toque para cancelar"
     : isListening
     ? "Toque para parar"
-    : orbState === "speaking"
+    : orbState === "speaking" || orbState === "scanning"
     ? "Toque para interromper"
     : "Toque para falar";
 
@@ -111,7 +129,46 @@ function Hud() {
       <div className="hud-vignette absolute inset-0" />
       <Particles />
 
-      {/* === Briefing overlay: cards floating around the orb === */}
+      {/* === Lock overlay (when global locked) === */}
+      {globalLocked && (
+        <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center">
+          <div className="relative flex flex-col items-center gap-4">
+            {/* Lock icon with concentric rings */}
+            <div className="relative flex size-32 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-border-strong/30" />
+              <div className="absolute inset-4 rounded-full border border-border-strong/40" />
+              <div className="absolute inset-8 rounded-full border border-border-strong/60" />
+              <div className="absolute inset-12 rounded-full border border-warning/50" />
+              {scanning ? (
+                <Scan className="size-12 animate-pulse text-primary" />
+              ) : (
+                <Lock className="size-12 text-warning" />
+              )}
+            </div>
+            <div className="text-center">
+              <div className="hud-label text-warning">{scanning ? "ESCANEANDO…" : "INTERFACE PROTEGIDA"}</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {scanning ? `Confirmando identidade — ${Math.round(scanProgress)}%` : "Toque no microfone e diga \"Jarvis, ativar monitor\""}
+              </div>
+              <div className="mt-2 text-[10px] uppercase tracking-wider text-subtle">
+                VOZ · AGENDA · E-MAILS · TELEMETRIA — DADOS ATIVOS
+              </div>
+            </div>
+            {/* Unlock CTA button */}
+            {!scanning && (
+              <button
+                onClick={() => unlockFlow.start()}
+                disabled={unlockFlow.running}
+                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-lg border border-primary bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20 hover:neon-glow"
+              >
+                <Unlock className="size-4" /> Ativar monitores
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* === Briefing overlay === */}
       {briefing.briefing && (
         <>
           <BriefingOverlay
@@ -154,14 +211,43 @@ function Hud() {
         <StatusBadge tone={tone} live>{STATUS_LABEL[orbState]}</StatusBadge>
       </div>
 
-      {/* === Top-center: "Bom dia" quick trigger (only when idle + no briefing) === */}
-      {!briefing.running && !briefing.briefing && (
-        <button
-          onClick={() => briefing.start()}
-          className="fixed left-1/2 top-5 z-40 -translate-x-1/2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary backdrop-blur-xl transition hover:bg-primary/20 hover:neon-glow"
-        >
-          ☀ Bom dia, JARVIS
-        </button>
+      {/* === Top-center: quick triggers (only when no flow is running) === */}
+      {!briefing.running && !unlockFlow.running && !briefing.briefing && (
+        <div className="fixed left-1/2 top-5 z-40 flex -translate-x-1/2 gap-2">
+          <button
+            onClick={() => briefing.start()}
+            className="rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary backdrop-blur-xl transition hover:bg-primary/20 hover:neon-glow"
+          >
+            ☀ Bom dia, JARVIS
+          </button>
+          <button
+            onClick={() => globalLocked ? unlockFlow.start() : unlockFlow.lock()}
+            className={cn(
+              "rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-xl transition",
+              globalLocked
+                ? "border-warning/40 bg-warning/10 text-warning hover:bg-warning/20"
+                : "border-success/40 bg-success/10 text-success hover:bg-success/20"
+            )}
+          >
+            {globalLocked ? "🔒 Ativar monitores" : "🔓 Bloquear"}
+          </button>
+        </div>
+      )}
+
+      {/* === Scan progress bar (during scanning) === */}
+      {scanning && (
+        <div className="fixed left-1/2 top-20 z-40 -translate-x-1/2 w-80 max-w-[80vw]">
+          <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-primary">
+            <span>SCAN</span>
+            <span className="font-mono">{Math.round(scanProgress)}%</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-glass">
+            <div
+              className="h-full bg-primary transition-all duration-200"
+              style={{ width: `${scanProgress}%` }}
+            />
+          </div>
+        </div>
       )}
 
       {/* === Bottom-center: mic toggle button === */}

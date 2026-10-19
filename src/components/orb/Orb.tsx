@@ -7,11 +7,13 @@ export interface OrbProps {
   state: OrbState;
   intensity?: number;
   userImage?: string | undefined;
+  /** Scan progress 0..100 — used by the renderer when state === "scanning". */
+  scanProgress?: number;
   size?: number;
   className?: string;
 }
 
-export function Orb({ state, intensity = 0.6, userImage, size = 480, className }: OrbProps) {
+export function Orb({ state, intensity = 0.6, userImage, scanProgress = 0, size = 480, className }: OrbProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<OrbRenderer | null>(null);
 
@@ -34,6 +36,7 @@ export function Orb({ state, intensity = 0.6, userImage, size = 480, className }
 
   useEffect(() => { rendererRef.current?.setState(state); }, [state]);
   useEffect(() => { if (rendererRef.current) rendererRef.current.intensity = intensity; }, [intensity]);
+  useEffect(() => { if (rendererRef.current) rendererRef.current.scanProgress = scanProgress; }, [scanProgress]);
   useEffect(() => {
     if (!rendererRef.current) return;
     if (!userImage) { rendererRef.current.image = null; return; }

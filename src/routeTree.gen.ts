@@ -25,6 +25,7 @@ import { Route as DashboardNewsRouteImport } from './routes/_dashboard.news'
 import { Route as DashboardRoutinesRouteImport } from './routes/_dashboard.routines'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard.settings'
 import { Route as DashboardSourcesRouteImport } from './routes/_dashboard.sources'
+import { Route as DashboardBriefingConfigurarRouteImport } from './routes/_dashboard.briefing.configurar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -105,13 +106,19 @@ const DashboardSourcesRoute = DashboardSourcesRouteImport.update({
   path: '/sources',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBriefingConfigurarRoute =
+  DashboardBriefingConfigurarRouteImport.update({
+    id: '/configurar',
+    path: '/configurar',
+    getParentRoute: () => DashboardBriefingRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/ai-config': typeof DashboardAiConfigRoute
   '/aparelhos': typeof DashboardAparelhosRoute
-  '/briefing': typeof DashboardBriefingRoute
+  '/briefing': typeof DashboardBriefingRouteWithChildren
   '/chat': typeof DashboardChatRoute
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
@@ -122,13 +129,14 @@ export interface FileRoutesByFullPath {
   '/routines': typeof DashboardRoutinesRoute
   '/settings': typeof DashboardSettingsRoute
   '/sources': typeof DashboardSourcesRoute
+  '/briefing/configurar': typeof DashboardBriefingConfigurarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/ai-config': typeof DashboardAiConfigRoute
   '/aparelhos': typeof DashboardAparelhosRoute
-  '/briefing': typeof DashboardBriefingRoute
+  '/briefing': typeof DashboardBriefingRouteWithChildren
   '/chat': typeof DashboardChatRoute
   '/finance': typeof DashboardFinanceRoute
   '/logs': typeof DashboardLogsRoute
@@ -139,6 +147,7 @@ export interface FileRoutesByTo {
   '/routines': typeof DashboardRoutinesRoute
   '/settings': typeof DashboardSettingsRoute
   '/sources': typeof DashboardSourcesRoute
+  '/briefing/configurar': typeof DashboardBriefingConfigurarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -147,7 +156,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_dashboard/ai-config': typeof DashboardAiConfigRoute
   '/_dashboard/aparelhos': typeof DashboardAparelhosRoute
-  '/_dashboard/briefing': typeof DashboardBriefingRoute
+  '/_dashboard/briefing': typeof DashboardBriefingRouteWithChildren
   '/_dashboard/chat': typeof DashboardChatRoute
   '/_dashboard/finance': typeof DashboardFinanceRoute
   '/_dashboard/logs': typeof DashboardLogsRoute
@@ -158,6 +167,7 @@ export interface FileRoutesById {
   '/_dashboard/routines': typeof DashboardRoutinesRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/_dashboard/sources': typeof DashboardSourcesRoute
+  '/_dashboard/briefing/configurar': typeof DashboardBriefingConfigurarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/routines'
     | '/settings'
     | '/sources'
+    | '/briefing/configurar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/routines'
     | '/settings'
     | '/sources'
+    | '/briefing/configurar'
   id:
     | '__root__'
     | '/'
@@ -212,6 +224,7 @@ export interface FileRouteTypes {
     | '/_dashboard/routines'
     | '/_dashboard/settings'
     | '/_dashboard/sources'
+    | '/_dashboard/briefing/configurar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -334,13 +347,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSourcesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/briefing/configurar': {
+      id: '/_dashboard/briefing/configurar'
+      path: '/configurar'
+      fullPath: '/briefing/configurar'
+      preLoaderRoute: typeof DashboardBriefingConfigurarRouteImport
+      parentRoute: typeof DashboardBriefingRoute
+    }
   }
 }
+
+interface DashboardBriefingRouteChildren {
+  DashboardBriefingConfigurarRoute: typeof DashboardBriefingConfigurarRoute
+}
+
+const DashboardBriefingRouteChildren: DashboardBriefingRouteChildren = {
+  DashboardBriefingConfigurarRoute: DashboardBriefingConfigurarRoute,
+}
+
+const DashboardBriefingRouteWithChildren =
+  DashboardBriefingRoute._addFileChildren(DashboardBriefingRouteChildren)
 
 interface DashboardRouteChildren {
   DashboardAiConfigRoute: typeof DashboardAiConfigRoute
   DashboardAparelhosRoute: typeof DashboardAparelhosRoute
-  DashboardBriefingRoute: typeof DashboardBriefingRoute
+  DashboardBriefingRoute: typeof DashboardBriefingRouteWithChildren
   DashboardChatRoute: typeof DashboardChatRoute
   DashboardFinanceRoute: typeof DashboardFinanceRoute
   DashboardLogsRoute: typeof DashboardLogsRoute
@@ -356,7 +387,7 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAiConfigRoute: DashboardAiConfigRoute,
   DashboardAparelhosRoute: DashboardAparelhosRoute,
-  DashboardBriefingRoute: DashboardBriefingRoute,
+  DashboardBriefingRoute: DashboardBriefingRouteWithChildren,
   DashboardChatRoute: DashboardChatRoute,
   DashboardFinanceRoute: DashboardFinanceRoute,
   DashboardLogsRoute: DashboardLogsRoute,
