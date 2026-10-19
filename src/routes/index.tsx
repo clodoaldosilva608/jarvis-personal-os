@@ -120,16 +120,31 @@ function Hud() {
 
       {/* Center: orb behind + dynamic card front */}
       <section className="relative z-10 flex flex-1 w-full items-center justify-center">
-        {/* Orb (behind card) */}
-        {/* CSS glow fallback (always visible, even before JS hydrates) */}
-        <div className="absolute z-0" style={{
-          width: size, height: size,
-          background: 'radial-gradient(circle at center, rgba(0,229,255,0.15) 0%, rgba(0,229,255,0.05) 40%, transparent 70%)',
-          borderRadius: '50%',
-          filter: 'blur(20px)',
-        }} />
-        {/* Orb canvas (renders after hydration) */}
-        <ClientOnly fallback={<div style={{ width: size, height: size }} />}>
+        {/* CSS orb — always visible (even before JS) */}
+        <div className="absolute" style={{ width: size, height: size }}>
+          {/* Outer glow */}
+          <div className="absolute inset-0 rounded-full" style={{
+            background: 'radial-gradient(circle, rgba(0,229,255,0.25) 0%, rgba(0,229,255,0.08) 30%, transparent 60%)',
+            filter: 'blur(30px)',
+          }} />
+          {/* Outer ring */}
+          <div className="absolute inset-[10%] rounded-full border-2 border-primary/20" style={{ animation: 'spin 20s linear infinite' }} />
+          {/* Middle ring (dashed) */}
+          <div className="absolute inset-[18%] rounded-full border border-dashed border-primary/30" style={{ animation: 'spin 15s linear infinite reverse' }} />
+          {/* Inner ring */}
+          <div className="absolute inset-[28%] rounded-full border border-primary/40" style={{ animation: 'spin 10s linear infinite' }} />
+          {/* Core glow */}
+          <div className="absolute inset-[35%] rounded-full" style={{
+            background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(0,229,255,0.3) 30%, transparent 70%)',
+            filter: 'blur(8px)',
+            animation: 'pulse-ring 2s ease-out infinite',
+          }} />
+          {/* Bright center */}
+          <div className="absolute inset-[42%] rounded-full bg-primary/60" style={{ boxShadow: '0 0 30px rgba(0,229,255,0.5)' }} />
+        </div>
+
+        {/* Canvas orb (renders after hydration, on top of CSS orb) */}
+        <ClientOnly fallback={null}>
           <Orb
             state={orbState}
             size={size}
