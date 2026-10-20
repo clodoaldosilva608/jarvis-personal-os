@@ -2,10 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Scan, ShieldCheck, Camera, Fingerprint } from "lucide-react";
 import { GlassCard } from "@/components/jarvis";
-import { Particles } from "@/components/jarvis/Particles";
 import { useJarvis } from "@/stores/jarvis";
-import { useFaceID } from "@/hooks/use-face-id";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -29,22 +26,21 @@ function LoginPage() {
   }, []);
 
   const handleGoogleLogin = () => {
-    // Simula login Google — em produção usaria Supabase/Auth
     setUnlocked(true);
+    localStorage.setItem("jarvis-unlocked", "true");
     navigate({ to: "/" });
   };
 
   const handleFaceId = () => {
     setMode("scanning");
     setOrbState("identifying");
-
-    // Simula verificação facial (2.5s)
     setTimeout(() => {
-      const success = Math.random() > 0.2; // 80% sucesso simulado
+      const success = Math.random() > 0.2;
       if (success) {
         setMode("success");
         setOrbState("success");
         setUnlocked(true);
+        localStorage.setItem("jarvis-unlocked", "true");
         setTimeout(() => navigate({ to: "/" }), 800);
       } else {
         setMode("error");
@@ -55,21 +51,20 @@ function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
-      <div className="hud-grid absolute inset-0" />
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#020617]">
+      {/* Subtle background — only the HUD grid + vignette (matches Lovable) */}
+      <div className="hud-grid absolute inset-0 opacity-50" />
       <div className="hud-vignette absolute inset-0" />
-      <Particles />
-
-      {/* Subtle radial glow at center (matches Lovable) — no orb on login, just glow */}
+      {/* Subtle radial glow at center — no orb visible */}
       <div className="absolute inset-0 flex items-center justify-center" style={{
-        background: 'radial-gradient(circle at center, rgba(0,229,255,0.10) 0%, rgba(0,229,255,0.03) 40%, transparent 70%)',
+        background: "radial-gradient(circle at center, rgba(0,229,255,0.08) 0%, transparent 60%)",
       }} />
 
-      {/* Card de login — JARVIS branding moved INSIDE card (like Lovable) */}
+      {/* Login card — matches Lovable layout */}
       <div className="relative z-10 w-full max-w-md px-6">
         <GlassCard className="border-cyan-500/30 bg-white/[0.04] p-8 backdrop-blur-xl">
           <div className="mb-6 text-center">
-            {/* JARVIS branding inside the card */}
+            {/* JARVIS branding inside the card (like Lovable) */}
             <div className="hud-label text-primary text-glow mb-4 tracking-[0.4em]">J.A.R.V.I.S.</div>
             <h1 className="text-xl font-semibold text-foreground mb-1">Identificação necessária</h1>
             <p className="text-sm text-muted-foreground">
@@ -82,7 +77,7 @@ function LoginPage() {
 
           {mode === "idle" && (
             <div className="space-y-3">
-              {/* Google Login — SOLID cyan button (like Lovable) */}
+              {/* Google Login — SOLID cyan button (matches Lovable) */}
               <button
                 onClick={handleGoogleLogin}
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-cyan-300"
@@ -91,7 +86,7 @@ function LoginPage() {
                 Entrar com Google
               </button>
 
-              {/* Face ID — outline style (secondary) */}
+              {/* Face ID — outline secondary */}
               <button
                 onClick={handleFaceId}
                 className="flex w-full items-center justify-center gap-3 rounded-xl border border-cyan-500/30 bg-white/[0.03] px-4 py-3 text-sm font-medium text-foreground transition hover:bg-cyan-500/10"
@@ -100,9 +95,13 @@ function LoginPage() {
                 {hasStored ? "Entrar com Face ID" : "Cadastrar Face ID"}
               </button>
 
-              {/* Demo bypass — minimal subtle link (like Lovable) */}
+              {/* Demo bypass — minimal subtle link */}
               <button
-                onClick={() => { setUnlocked(true); navigate({ to: "/" }); }}
+                onClick={() => {
+                  setUnlocked(true);
+                  localStorage.setItem("jarvis-unlocked", "true");
+                  navigate({ to: "/" });
+                }}
                 className="w-full text-center text-xs text-subtle transition hover:text-muted-foreground pt-1"
               >
                 Entrar sem identificação (demo)
@@ -113,7 +112,6 @@ function LoginPage() {
           {mode === "scanning" && (
             <div className="py-8 text-center">
               <div className="relative mx-auto h-32 w-32">
-                {/* Scan rings */}
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}

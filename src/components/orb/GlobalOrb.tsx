@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useHydrated } from "@tanstack/react-router";
+import { useHydrated, useRouterState } from "@tanstack/react-router";
 import { Orb } from "./Orb";
 import { useJarvis } from "@/stores/jarvis";
 import { useMonitors } from "@/stores/monitors";
@@ -23,7 +23,11 @@ export function GlobalOrb() {
   const scanProgress = useMonitors((s) => s.scanProgress);
   const scanning = useMonitors((s) => s.scanning);
   const capturedImage = useMonitors((s) => s.capturedImage);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [size, setSize] = useState(560);
+
+  // Hide the orb on the login page (matches Lovable — login has no orb).
+  const isLogin = pathname === "/login";
 
   useEffect(() => {
     const calc = () => {
@@ -37,6 +41,9 @@ export function GlobalOrb() {
     window.addEventListener("resize", calc);
     return () => window.removeEventListener("resize", calc);
   }, []);
+
+  // On the login page, don't render the orb (Lovable has no orb on /login).
+  if (isLogin) return null;
 
   return (
     <>
