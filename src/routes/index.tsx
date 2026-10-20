@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Menu, Mic, MicOff, X, MapPin, AlertCircle } from "lucide-react";
 import { StatusBadge } from "@/components/jarvis";
 import { Particles } from "@/components/jarvis/Particles";
@@ -43,6 +43,39 @@ function Hud() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [transcriptDisplay, setTranscriptDisplay] = useState<string>("");
   const hydrated = useHydrated();
+  // === Cinema mode: hide all chrome after 3s of inactivity ===
+  const [chromeVisible, setChromeVisible] = useState(true);
+  const hideTimerRef = useRef<number | null>(null);
+
+  const showChrome = useCallback(() => {
+    setChromeVisible(true);
+    if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = window.setTimeout(() => {
+      // Only auto-hide when idle (not listening, not speaking, not running flows)
+      if (!stt.listening && !briefing.running && !unlockFlow.running && !briefing.briefing) {
+        setChromeVisible(false);
+      }
+    }, 3000);
+  }, [stt.listening, briefing.running, unlockFlow.running, briefing.briefing]);
+
+  useEffect(() => {
+    const handleActivity = () => showChrome();
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("touchstart", handleActivity, { passive: true });
+    window.addEventListener("keydown", handleActivity);
+    showChrome();
+    return () => {
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("touchstart", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
+    };
+  }, [showChrome]);
+
+  // Whenever a flow starts, show chrome; whenever it ends, restart hide timer
+  useEffect(() => {
+    showChrome();
+  }, [orbState, briefing.running, unlockFlow.running, showChrome]);
 
   useEffect(() => {
     if (!isUnlocked) localStorage.setItem("jarvis-unlocked", "true");
@@ -192,17 +225,23 @@ function Hud() {
         </>
       )}
 
-      {/* === Top-left: minimal menu (very subtle — just dots icon, no visible button chrome) === */}
+      {/* === Top-left: minimal menu (auto-hidden in cinema mode) === */}
       <button
         onClick={() => setMenuOpen(true)}
         aria-label="Abrir menu"
-        className="fixed left-4 top-4 z-40 flex size-10 items-center justify-center rounded-full text-muted-foreground/70 transition hover:text-primary sm:left-5 sm:top-5"
+        className={cn(
+          "fixed left-4 top-4 z-40 flex size-10 items-center justify-center rounded-full text-muted-foreground/70 transition-opacity duration-500 hover:text-primary sm:left-5 sm:top-5",
+          chromeVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
       >
         <Menu className="size-5" />
       </button>
 
       {/* === Top-right: minimal status badge + Configure IA hint === */}
-      <div className="fixed right-4 top-4 z-40 flex items-center gap-2 sm:right-5 sm:top-5">
+      <div className={cn(
+        "fixed right-4 top-4 z-40 flex items-center gap-2 transition-opacity duration-500 sm:right-5 sm:top-5",
+        chromeVisible || briefing.briefing || scanning ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}>
         {!isConfigured && hydrated && (
           <Link
             to="/ai-config"
@@ -251,8 +290,13 @@ function Hud() {
         </div>
       )}
 
-      {/* === Bottom-center: mic toggle (orb is clickable too) === */}
-      <div className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2 sm:bottom-8 sm:gap-3">
+      {/* === Bottom-center: mic toggle (auto-hidden in cinema mode when idle) === */}
+      <div className={cn(
+        "fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-500 sm:bottom-8 sm:gap-3",
+        chromeVisible || briefing.running || unlockFlow.running || stt.listening || orbState !== "idle"
+          ? "opacity-100"
+          : "opacity-0 pointer-events-none"
+      )}>
         <button
           onClick={toggleMic}
           aria-label={isListening ? "Parar de escutar" : "Falar com JARVIS"}
@@ -272,9 +316,22 @@ function Hud() {
         </p>
       </div>
 
-      {/* === Subtle location indicator at bottom-left === */}
+      {/* === Click anywhere (when chrome hidden) = show chrome === */}
+      {!chromeVisible && (
+        <button
+          aria-label="Mostrar controles"
+          onClick={() => showChrome()}
+          className="fixed inset-0 z-30 cursor-default"
+          tabIndex={-1}
+        />
+      )}
+
+      {/* === Subtle location indicator at bottom-left (hidden in cinema) === */}
       {geo.placeName && !briefing.briefing && (
-        <div className="fixed bottom-6 left-4 z-40 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-subtle sm:left-6">
+        <div className={cn(
+          "fixed bottom-6 left-4 z-40 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-subtle transition-opacity duration-500 sm:left-6",
+          chromeVisible ? "opacity-100" : "opacity-0"
+        )}>
           <MapPin className="size-3" />
           <span className="truncate max-w-[100px] sm:max-w-[160px]">{geo.placeName.split(",")[0]}</span>
         </div>
