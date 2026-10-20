@@ -110,10 +110,10 @@
   font-weight: 600;
 }
 @utility hud-grid {
-  /* Grid pattern — visible enough to give the "tech HUD" feel without being intrusive. */
+  /* Grid pattern — visible enough to give the "tech HUD" feel (matches Lovable). */
   background-image:
-    linear-gradient(oklch(0.85 0.15 220 / 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.85 0.15 220 / 0.06) 1px, transparent 1px);
+    linear-gradient(oklch(0.85 0.15 220 / 0.10) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.85 0.15 220 / 0.10) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 @utility hud-vignette {

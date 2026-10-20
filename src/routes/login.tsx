@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Scan, ShieldCheck, Camera, Fingerprint } from "lucide-react";
 import { GlassCard } from "@/components/jarvis";
 import { useJarvis } from "@/stores/jarvis";
@@ -65,18 +65,18 @@ function LoginPage() {
   };
 
   return (
-    <main onClick={handleBackgroundClick} className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#020617] cursor-default">
-      {/* Subtle background — only the HUD grid + vignette (matches Lovable) */}
-      <div className="hud-grid absolute inset-0 opacity-50" />
+    <main onClick={handleBackgroundClick} className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0a192f] cursor-default">
+      {/* Visible HUD grid (matches Lovable) */}
+      <div className="hud-grid absolute inset-0 opacity-80" />
       <div className="hud-vignette absolute inset-0" />
       {/* Subtle radial glow at center — no orb visible */}
       <div className="absolute inset-0 flex items-center justify-center" style={{
-        background: "radial-gradient(circle at center, rgba(0,229,255,0.08) 0%, transparent 60%)",
+        background: "radial-gradient(circle at center, rgba(0,229,255,0.10) 0%, transparent 60%)",
       }} />
 
       {/* Login card — matches Lovable layout */}
       <div className="relative z-10 w-full max-w-md px-6" onClick={(e) => e.stopPropagation()}>
-        <GlassCard className="border-cyan-500/30 bg-white/[0.04] p-8 backdrop-blur-xl">
+        <GlassCard className="border-cyan-500/40 bg-white/[0.04] p-8 backdrop-blur-xl" style={{ boxShadow: "0 0 30px rgba(6,182,212,0.15), 0 0 60px rgba(6,182,212,0.08)" } as React.CSSProperties}>
           <div className="mb-6 text-center">
             {/* JARVIS branding inside the card (like Lovable) */}
             <div className="hud-label text-primary text-glow mb-4 tracking-[0.4em]">J.A.R.V.I.S.</div>
