@@ -9,11 +9,11 @@ import type { Device } from "@/types/smarthome";
 
 const INITIAL_DEVICES: Device[] = [
   { id: "ew1", name: "Escritório", type: "switch", room: "Escritório", status: "online", state: "on", source: "ewelink" },
-  { id: "ew2", name: "Quarto de Lucas", type: "light", room: "Quarto de Lucas", status: "online", state: "off", source: "ewelink" },
-  { id: "ew3", name: "Sala de Jantar", type: "light", room: "Sala de Jantar", status: "online", state: "off", source: "ewelink" },
-  { id: "ew4", name: "Quarto de Visita", type: "light", room: "Quarto de Visita", status: "online", state: "off", source: "ewelink" },
-  { id: "ew5", name: "Interruptor (Grupo)", type: "group", status: "online", state: "off", source: "ewelink" },
-  { id: "ha1", name: "TV Sala", type: "outlet", room: "Sala de Jantar", status: "offline", state: "off", source: "homeassistant" },
+  { id: "ew2", name: "Sala de Jantar", type: "light", room: "Sala de Jantar", status: "online", state: "off", source: "ewelink" },
+  { id: "ew3", name: "Quarto de Visitas", type: "light", room: "Quarto de Visitas", status: "online", state: "off", source: "ewelink" },
+  { id: "ew4", name: "Quarto de Lucas", type: "light", room: "Quarto de Lucas", status: "online", state: "off", source: "ewelink" },
+  { id: "ew5", name: "Interruptor (Grupo)", type: "group", room: "Casa inteira", status: "online", state: "off", source: "ewelink" },
+  { id: "ha1", name: "Ventilador Sala", type: "switch", room: "Sala de Jantar", status: "online", state: "off", source: "homeassistant" },
   { id: "ha2", name: "Ar Condicionado", type: "outlet", room: "Quarto de Lucas", status: "online", state: "off", source: "homeassistant" },
   { id: "ha3", name: "Cafeteira", type: "outlet", room: "Cozinha", status: "online", state: "off", source: "homeassistant" },
 ];

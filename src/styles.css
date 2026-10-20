@@ -64,8 +64,9 @@
   --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.64 0.21 25);            /* #EF4444 */
   --destructive-foreground: oklch(0.98 0 0);
-  --success: oklch(0.72 0.19 150);
-  --warning: oklch(0.77 0.16 70);
+  --success: oklch(0.78 0.20 145);             /* #00FF88 — verde neon (sucesso ativo) */
+  --warning: oklch(0.78 0.18 75);              /* #FFB800 — âmbar (atenção) */
+  --danger: oklch(0.65 0.22 25);               /* #FF4444 — vermelho neon (erro) */
   --border: oklch(0.85 0.15 205 / 0.18);
   --border-strong: oklch(0.85 0.15 205 / 0.35);
   --glass: oklch(1 0 0 / 0.04);

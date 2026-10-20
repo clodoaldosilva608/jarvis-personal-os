@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { RefreshCw, ExternalLink, CheckCircle2, AlertCircle, XCircle, Terminal, Mic } from "lucide-react";
+import { RefreshCw, ExternalLink, CheckCircle2, AlertCircle, XCircle, Terminal, Mic, ChevronDown, ChevronUp, Plug, ShieldCheck } from "lucide-react";
 import { GlassCard, SectionHeader, StatusBadge } from "@/components/jarvis";
 import { useIntegrations } from "@/stores/integrations";
 import { useJarvis } from "@/stores/jarvis";
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_dashboard/sources")({
   head: () => ({
     meta: [
       { title: "Fontes — J.A.R.V.I.S." },
-      { name: "description", content: "Integrações com eWeLink, Home Assistant e mais." },
+      { name: "description", content: "Integrações com eWeLink, Home Assistant, PIX, Banco e mais." },
     ],
   }),
   component: SourcesPage,
@@ -25,7 +25,7 @@ function statusTone(s: IntegrationStatus) {
 }
 function statusLabel(s: IntegrationStatus) {
   if (s === "connected") return "CONECTADO";
-  if (s === "needs_attention") return "ATENÇÃO";
+  if (s === "needs_attention") return "INSTÁVEL";
   return "DESCONECTADO";
 }
 function statusIcon(s: IntegrationStatus) {
@@ -40,6 +40,7 @@ function IntegrationCard({ i }: { i: Integration }) {
   const setOrbState = useJarvis((s) => s.setOrbState);
   const { speak } = useSpeech();
   const [verifying, setVerifying] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const Icon = statusIcon(i.status);
 
   const verify = async () => {
@@ -47,7 +48,7 @@ function IntegrationCard({ i }: { i: Integration }) {
     setOrbState("thinking");
     // Mock verification: in production this would ping the MCP server
     await new Promise((r) => setTimeout(r, 1500));
-    if (i.id === "ewelink" || i.id === "homeassistant") {
+    if (i.id === "ewelink" || i.id === "home-assistant" || i.id === "ehail-link" || i.id === "pix") {
       connect(i.id);
     }
     setVerifying(false);
@@ -55,6 +56,8 @@ function IntegrationCard({ i }: { i: Integration }) {
     setTimeout(() => setOrbState("idle"), 1500);
     if (speak) speak(`${i.name} verificado.`, { onEnd: () => {} });
   };
+
+  const hasMcpUrl = Boolean(i.mcpUrl);
 
   return (
     <GlassCard className={cn("flex flex-col p-4 transition", i.status === "connected" && "border-success/30")}>
@@ -79,15 +82,45 @@ function IntegrationCard({ i }: { i: Integration }) {
         <span className="rounded-full border border-border-strong/40 bg-glass px-2 py-0.5 font-mono">
           {i.toolsCount} {i.toolsCount === 1 ? "ferramenta" : "ferramentas"}
         </span>
+        {hasMcpUrl && (
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary transition hover:bg-primary/20"
+          >
+            <Terminal className="size-3" /> MCP
+            {expanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+          </button>
+        )}
       </div>
 
-      {/* eWeLink / Home Assistant specifics: show MCP server URL */}
-      {i.mcpUrl && (
+      {/* MCP server URL (collapsible — expanded by default for eWeLink/HA/PIX) */}
+      {hasMcpUrl && expanded && (
         <div className="mt-3 rounded-lg border border-border-strong/40 bg-glass p-2.5">
-          <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-            <Terminal className="size-3" /> MCP Server URL
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+              <Terminal className="size-3" /> MCP Server URL
+            </div>
+            <button
+              onClick={() => navigator.clipboard?.writeText(i.mcpUrl ?? "")}
+              className="text-[10px] uppercase tracking-wider text-subtle transition hover:text-primary"
+            >
+              Copiar
+            </button>
           </div>
           <code className="block truncate text-xs text-foreground">{i.mcpUrl}</code>
+          <div className="mt-2 flex flex-wrap gap-1.5 text-[9px] uppercase tracking-wider text-subtle">
+            {["Ideias", "ferramentas", "instruções", "detalhes", "integração", "habilidades", "aprovações"].map((tag) => (
+              <span key={tag} className="rounded border border-glass-border bg-glass px-1.5 py-0.5">{tag}</span>
+            ))}
+          </div>
+          <div className="mt-2 flex gap-2">
+            <button className="flex-1 rounded-lg border border-border bg-glass px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground transition hover:text-primary">
+              Acessar dados da conta
+            </button>
+            <button className="flex-1 rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1 text-[10px] uppercase tracking-wider text-destructive transition hover:bg-destructive/15">
+              Apagar todos os dados
+            </button>
+          </div>
         </div>
       )}
 
@@ -100,7 +133,7 @@ function IntegrationCard({ i }: { i: Integration }) {
             className="inline-flex items-center gap-1.5 rounded-lg border border-primary bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/20 disabled:opacity-50"
           >
             <RefreshCw className={cn("size-3", verifying && "animate-spin")} />
-            {verifying ? "Verificando…" : "Verificar conexão"}
+            {verifying ? "Verificando…" : "Ativar"}
           </button>
         )}
         {i.status === "connected" && (
@@ -109,6 +142,16 @@ function IntegrationCard({ i }: { i: Integration }) {
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-glass px-3 py-1.5 text-xs text-muted-foreground transition hover:border-destructive/30 hover:text-destructive"
           >
             Desconectar
+          </button>
+        )}
+        {i.status === "connected" && hasMcpUrl && (
+          <button
+            onClick={verify}
+            disabled={verifying}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-glass px-3 py-1.5 text-xs text-muted-foreground transition hover:text-primary disabled:opacity-50"
+          >
+            <RefreshCw className={cn("size-3", verifying && "animate-spin")} />
+            {verifying ? "Verificando…" : "Verificar conexão"}
           </button>
         )}
         {i.docsUrl && (
@@ -133,20 +176,20 @@ function SourcesPage() {
   const disconnected = integrations.filter((i) => i.status === "disconnected");
 
   return (
-    <div className="mx-auto max-w-5xl pb-16">
+    <div className="mx-auto max-w-6xl pb-16">
       <SectionHeader
         title="Fontes de Dados"
-        subtitle={`${connected.length} conectadas · ${needsAttention.length} precisam atenção · ${disconnected.length} desconectadas`}
+        subtitle={`${connected.length} conectadas · ${needsAttention.length} instáveis · ${disconnected.length} para ativar`}
       />
 
-      {/* eWeLink callout */}
+      {/* Privacy / eWeLink callout */}
       <GlassCard className="mb-4">
         <div className="flex items-start gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-xl">
             ⚡
           </div>
           <div className="flex-1">
-            <h2 className="hud-label text-primary">Como usar no HUD</h2>
+            <h2 className="hud-label text-primary">COMO USAR NO HUD</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Com eWeLink conectado, você pode falar comandos naturais no HUD ou no chat:
             </p>
@@ -156,6 +199,10 @@ function SourcesPage() {
                   <Mic className="size-3" /> "{cmd}"
                 </span>
               ))}
+            </div>
+            <div className="mt-2 flex items-center gap-1.5 text-[10px] text-subtle">
+              <ShieldCheck className="size-3" />
+              <span>Os dados ficam apenas no seu dispositivo. Sem nuvem, sem servidor externo.</span>
             </div>
             <Link to="/routines" className="mt-3 inline-block text-xs text-primary hover:underline">
               Ver rotinas prontas →
@@ -173,3 +220,6 @@ function SourcesPage() {
     </div>
   );
 }
+
+// Avoid unused import warning
+void Plug;

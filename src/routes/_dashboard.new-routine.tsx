@@ -177,9 +177,12 @@ function NewRoutinePage() {
       {/* === Nome === */}
       <GlassCard className="mb-4">
         <h2 className="hud-label mb-2 text-primary">Nome da rotina</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Utilizaremos este nome para reconhecer a rotina na lista e nos logs.
+        </p>
         <input
           className={inputCls}
-          placeholder="Ex: Chegada em casa"
+          placeholder="Ex.: Chegada em casa"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={60}
@@ -189,12 +192,14 @@ function NewRoutinePage() {
       {/* === Frases de disparo === */}
       <GlassCard className="mb-4">
         <h2 className="hud-label mb-2 text-primary">Frases que disparam</h2>
-        <p className="mb-3 text-xs text-muted-foreground">Quando você disser uma dessas frases (no HUD ou chat), a rotina executa automaticamente.</p>
+        <p className="mb-3 text-xs text-muted-foreground">
+          O HUD compara a fala inteira para evitar acionamentos por engano.
+        </p>
         {phrases.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-1.5">
             {phrases.map((p) => (
               <span key={p} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs text-primary">
-                <Mic className="size-3" /> {p}
+                <Mic className="size-3" /> "{p}"
                 <button onClick={() => removePhrase(p)} aria-label={`Remover ${p}`} className="ml-0.5 hover:text-foreground">
                   <X className="size-3" />
                 </button>
@@ -205,7 +210,7 @@ function NewRoutinePage() {
         <div className="flex gap-2">
           <input
             className={inputCls}
-            placeholder='Ex: "cheguei" ou "tô em casa"'
+            placeholder="Ex: cheguei"
             value={phraseInput}
             onChange={(e) => setPhraseInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addPhrase())}
@@ -220,7 +225,9 @@ function NewRoutinePage() {
       {/* === Eventos do JARVIS === */}
       <GlassCard className="mb-4">
         <h2 className="hud-label mb-2 text-primary">Eventos do J.A.R.V.I.S.</h2>
-        <p className="mb-3 text-xs text-muted-foreground">Disparar automaticamente quando estes eventos ocorrerem (não depende de você falar).</p>
+        <p className="mb-3 text-xs text-muted-foreground">
+          A rotina também pode começar a funcionar automaticamente quando o sistema reconhecer um estímulo.
+        </p>
         <div className="space-y-2">
           {EVENTS.map((ev) => (
             <button
@@ -249,9 +256,13 @@ function NewRoutinePage() {
       {/* === Quando vale (schedule) === */}
       <GlassCard className="mb-4">
         <div className="flex items-center justify-between">
-          <h2 className="hud-label text-primary">Quando vale (opcional)</h2>
+          <div>
+            <h2 className="hud-label text-primary">Quando vale</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Opcional. Limita a execução a um período e dias específicos.</p>
+          </div>
           <button
             onClick={() => setUseSchedule((v) => !v)}
+            aria-label="Toggle schedule"
             className={cn(
               "relative h-6 w-11 rounded-full border transition",
               useSchedule ? "border-primary bg-primary/30" : "border-border bg-glass"
@@ -265,7 +276,7 @@ function NewRoutinePage() {
         </div>
         {useSchedule && (
           <div className="mt-3">
-            <p className="mb-2 text-xs text-muted-foreground">A rotina só responde nos dias e horários abaixo.</p>
+            <p className="mb-2 text-xs text-muted-foreground">Fora desse período, a rotina não será executada.</p>
             <div className="mb-3 flex flex-wrap gap-1.5">
               {DAYS.map((d, i) => (
                 <button
@@ -300,7 +311,10 @@ function NewRoutinePage() {
       {/* === Passos da rotina === */}
       <GlassCard className="mb-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="hud-label text-primary">Passos da rotina</h2>
+          <div>
+            <h2 className="hud-label text-primary">Passos da rotina</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Ações são executadas de cima para baixo. Reordene quando precisar.</p>
+          </div>
           <div className="flex gap-1.5">
             <NeonButton variant="ghost" onClick={() => addStep("device")} className="px-2.5 py-1 text-xs">
               <Plus className="size-3" /> Aparelho
