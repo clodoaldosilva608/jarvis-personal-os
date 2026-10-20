@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
+import { createFileRoute, Link, useHydrated, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Menu, Mic, MicOff, X, MapPin, AlertCircle } from "lucide-react";
 import { StatusBadge } from "@/components/jarvis";
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Hud() {
+  const navigate = useNavigate();
   const { orbState, setOrbState, isUnlocked } = useJarvis();
   const { speak, cancel, supported: ttsSupported } = useSpeech();
   const { generate, isConfigured } = useGemini();
@@ -46,6 +47,13 @@ function Hud() {
   // === Cinema mode: hide all chrome after 3s of inactivity ===
   const [chromeVisible, setChromeVisible] = useState(true);
   const hideTimerRef = useRef<number | null>(null);
+
+  // === Auth gate: redirect to /login if not unlocked (matches Lovable behavior) ===
+  useEffect(() => {
+    if (hydrated && !isUnlocked && !localStorage.getItem("jarvis-unlocked")) {
+      navigate({ to: "/login" });
+    }
+  }, [hydrated, isUnlocked, navigate]);
 
   const showChrome = useCallback(() => {
     setChromeVisible(true);
@@ -77,8 +85,11 @@ function Hud() {
     showChrome();
   }, [orbState, briefing.running, unlockFlow.running, showChrome]);
 
+  // REMOVED: auto-unlock that bypassed authentication.
+  // Now matches Lovable behavior — /login is the entry point, user must
+  // authenticate (Google / Face ID / demo) before accessing the HUD.
   useEffect(() => {
-    if (!isUnlocked) localStorage.setItem("jarvis-unlocked", "true");
+    // no-op — auth handled by the redirect above
   }, [isUnlocked]);
 
   // If GPS gives us a place name, update briefing config to use it
