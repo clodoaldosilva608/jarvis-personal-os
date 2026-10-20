@@ -76,7 +76,7 @@ function LoginPage() {
 
       {/* Login card — matches Lovable layout */}
       <div className="relative z-10 w-full max-w-md px-6" onClick={(e) => e.stopPropagation()}>
-        <GlassCard className="border-cyan-500/40 bg-white/[0.04] p-8 backdrop-blur-xl" style={{ boxShadow: "0 0 30px rgba(6,182,212,0.15), 0 0 60px rgba(6,182,212,0.08)" } as React.CSSProperties}>
+        <GlassCard className="border-cyan-500/40 bg-white/[0.04] p-10 backdrop-blur-xl rounded-3xl" style={{ boxShadow: "0 0 30px rgba(6,182,212,0.4), 0 0 60px rgba(6,182,212,0.15)" } as React.CSSProperties}>
           <div className="mb-6 text-center">
             {/* JARVIS branding inside the card (like Lovable) */}
             <div className="hud-label text-primary text-glow mb-4 tracking-[0.4em]">J.A.R.V.I.S.</div>
