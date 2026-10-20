@@ -38,11 +38,18 @@ const badge = cva("inline-flex items-center gap-2 rounded-full border px-3 py-1 
   },
   defaultVariants: { tone: "primary" },
 });
-export function StatusBadge({ children, tone, live, className }: { children: ReactNode; live?: boolean; className?: string } & VariantProps<typeof badge>) {
+export function StatusBadge({ children, tone, live, className, dotted }: { children: ReactNode; live?: boolean; className?: string; dotted?: boolean } & VariantProps<typeof badge>) {
   return (
-    <span className={cn(badge({ tone }), className)}>
-      {live && <span className="relative flex size-1.5"><span className="absolute inset-0 animate-ping rounded-full bg-current" /><span className="size-1.5 rounded-full bg-current" /></span>}
-      {children}
+    <span className="flex flex-col items-center gap-0.5">
+      <span className={cn(badge({ tone }), className)}>
+        {live && <span className="relative flex size-1.5"><span className="absolute inset-0 animate-ping rounded-full bg-current" /><span className="size-1.5 rounded-full bg-current" /></span>}
+        {children}
+      </span>
+      {dotted && (
+        <span className="text-primary/60 leading-none tracking-widest text-[8px] select-none" aria-hidden>
+          {"·".repeat(30)}
+        </span>
+      )}
     </span>
   );
 }

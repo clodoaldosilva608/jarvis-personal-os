@@ -1,21 +1,25 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { PanoramaCard } from "./PanoramaCard";
 import { WeatherCard } from "./WeatherCard";
 import { AgendaCard } from "./AgendaCard";
 import { PriorityEmailsCard } from "./PriorityEmailsCard";
 import { NewsCard } from "./NewsCard";
 import { GlassCard } from "@/components/jarvis";
-import { Heart } from "lucide-react";
+import { Heart, Newspaper, Mail, CalendarDays, CloudSun, Activity } from "lucide-react";
 import type { BriefingData } from "@/types/briefing";
 
 /**
- * BriefingOverlay — the floating cards revealed progressively during the
- * morning briefing.
+ * BriefingOverlay — minimal, video-faithful layout.
  *
- * Desktop (≥ md): cards float around the orb (orb is rendered globally by
- *   GlobalOrb and stays in the center). Cards use absolute positioning.
+ * Video reference (@lucasvictor.ai Frame 5):
+ *   - Orb stays centered
+ *   - ONE card visible at a time (focus mode)
+ *   - Card is positioned at the bottom-third of the orb (overlapping)
+ *   - A large caption text shows what JARVIS is currently saying (below the orb)
+ *   - Mic button stays at the bottom center
  *
- * Mobile (< md): cards stack vertically BELOW the orb in a single column,
- *   scrollable. The orb stays visible at top, mic stays accessible at bottom.
+ * Desktop (≥ md): card floats centered, slightly overlapping the orb's lower third.
+ * Mobile (< md): card stacks vertically below orb, with caption above mic.
  */
 
 export interface RevealedCards {
@@ -28,6 +32,22 @@ export interface RevealedCards {
   closing?: boolean;
 }
 
+interface CardSlot {
+  key: keyof RevealedCards;
+  positionClass: string;
+  width: string;
+}
+
+const DESKTOP_SLOTS: CardSlot[] = [
+  { key: "panorama", positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]", width: "w-[320px]" },
+  { key: "weather", positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]", width: "w-[320px]" },
+  { key: "agenda", positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]", width: "w-[300px]" },
+  { key: "emails", positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]", width: "w-[340px]" },
+  { key: "news", positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]", width: "w-[340px]" },
+  { key: "health", positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]", width: "w-[300px]" },
+  { key: "closing", positionClass: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]", width: "w-[280px]" },
+];
+
 export function BriefingOverlay({
   data,
   revealedCards,
@@ -37,190 +57,140 @@ export function BriefingOverlay({
   revealedCards: RevealedCards;
   activeCard?: keyof RevealedCards;
 }) {
+  // Determine which card to show as "focused" — the active card from the briefing flow.
+  const focusedCard = activeCard ?? "panorama";
+  const slot = DESKTOP_SLOTS.find((s) => s.key === focusedCard) ?? DESKTOP_SLOTS[0]!;
+  // The caption text is the narration segment for the focused card.
+  const captionText = (() => {
+    const map: Record<keyof RevealedCards, string> = {
+      panorama: data.narration.find((n) => n.revealCard === "panorama")?.text ?? "",
+      weather: data.narration.find((n) => n.revealCard === "weather")?.text ?? "",
+      agenda: data.narration.find((n) => n.revealCard === "agenda")?.text ?? "",
+      emails: data.narration.find((n) => n.revealCard === "emails")?.text ?? "",
+      news: data.narration.find((n) => n.revealCard === "news")?.text ?? "",
+      health: data.narration.find((n) => n.revealCard === "health")?.text ?? "",
+      closing: data.narration.find((n) => n.revealCard === "closing")?.text ?? "",
+    };
+    return map[focusedCard] ?? "";
+  })();
+
   return (
     <>
-      {/* === Desktop: floating cards around orb === */}
+      {/* === Focused single card (desktop) === */}
       <div className="pointer-events-none fixed inset-0 z-30 hidden md:block">
-        {/* Panorama — top-left */}
-        <PanoramaCard visible={!!revealedCards.panorama} active={activeCard === "panorama"} />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={focusedCard}
+            initial={{ opacity: 0, y: 30, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.92 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className={cn("absolute z-30", slot.positionClass, slot.width)}
+          >
+            {focusedCard === "panorama" && <PanoramaCard visible={true} active={true} />}
+            {focusedCard === "weather" && <WeatherCard visible={true} active={true} data={data.weather} />}
+            {focusedCard === "agenda" && <AgendaCard visible={true} active={true} data={data.agenda} />}
+            {focusedCard === "emails" && <PriorityEmailsCard visible={true} active={true} data={data.emails} />}
+            {focusedCard === "news" && (
+              <NewsCard
+                visible={true}
+                active={true}
+                data={data.news[0] ?? { id: "n0", category: "Notícias", title: "", source: "", summary: "" }}
+                positionClass=""
+                width="w-full"
+              />
+            )}
+            {focusedCard === "health" && (
+              <HealthCard count={data.healthObservations ?? 0} />
+            )}
+            {focusedCard === "closing" && (
+              <ClosingCard />
+            )}
+          </motion.div>
+        </AnimatePresence>
 
-        {/* Weather — bottom-left */}
-        <WeatherCard visible={!!revealedCards.weather} active={activeCard === "weather"} data={data.weather} />
+        {/* === Dotted indicator line under status === */}
+        <div className="pointer-events-none absolute left-1/2 top-20 -translate-x-1/2 text-primary/60 tracking-widest">
+          {"·".repeat(60)}
+        </div>
 
-        {/* Agenda — middle-left */}
-        <AgendaCard visible={!!revealedCards.agenda} active={activeCard === "agenda"} data={data.agenda} />
-
-        {/* Priority emails — top-right */}
-        <PriorityEmailsCard visible={!!revealedCards.emails} active={activeCard === "emails"} data={data.emails} />
-
-        {/* News — right side, stacked vertically */}
-        {data.news.slice(0, 3).map((news, i) => {
-          const positions = [
-            "top-44 right-6 md:right-12",
-            "top-[19rem] right-6 md:right-12",
-            "top-[27rem] right-6 md:right-12",
-          ];
-          return (
-            <NewsCard
-              key={news.id}
-              visible={!!revevealedNews(revealedCards, i)}
-              active={activeCard === "news"}
-              data={news}
-              positionClass={positions[i] ?? positions[2]!}
-              width="w-[280px]"
-            />
-          );
-        })}
-
-        {/* Health — bottom-right */}
-        {revealedCards.health && (
-          <div className="pointer-events-auto absolute bottom-24 right-6 md:bottom-32 md:right-12 z-30 w-[260px]">
-            <GlassCard
-              className={`p-4 transition-all duration-300 ${activeCard === "health" ? "border-accent/60 neon-glow-accent" : ""}`}
-            >
-              <div className="mb-1 flex items-center gap-1.5 text-accent-foreground">
-                <Heart className="size-3.5" />
-                <span className="hud-label">SAÚDE · OBSERVAÇÕES</span>
-              </div>
-              <h3 className="text-base font-bold">{data.healthObservations ?? 0} observações</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Tenho {data.healthObservations ?? 0} observações sobre seus dados de saúde. O senhor quer ouvi-las?
-              </p>
-            </GlassCard>
-          </div>
-        )}
-
-        {/* Closing hint */}
-        {revealedCards.closing && (
-          <div className="pointer-events-auto absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
-            <p className="hud-label text-primary/60 text-glow">FOCO NO ESSENCIAL</p>
-          </div>
-        )}
+        {/* === Caption text (what JARVIS is currently saying) — big, centered, below orb === */}
+        <div className="pointer-events-none absolute bottom-32 left-1/2 -translate-x-1/2 w-[90vw] max-w-2xl text-center">
+          <p className="text-lg font-medium text-foreground/90 leading-relaxed text-glow">
+            {captionText}
+          </p>
+        </div>
       </div>
 
-      {/* === Mobile: stacked vertical cards below orb === */}
-      <div className="pointer-events-auto fixed inset-x-0 top-[60vh] bottom-20 z-30 flex flex-col gap-2 overflow-y-auto px-4 pb-4 md:hidden">
-        {revealedCards.panorama && (
-          <div className={activeCard === "panorama" ? "rounded-xl border border-primary/60 neon-glow-strong" : ""}>
-            <MobilePanorama />
-          </div>
-        )}
-        {revealedCards.weather && (
-          <div className={activeCard === "weather" ? "rounded-xl border border-primary/60 neon-glow-strong" : ""}>
-            <MobileWeather data={data.weather} />
-          </div>
-        )}
-        {revealedCards.agenda && (
-          <div className={activeCard === "agenda" ? "rounded-xl border border-primary/60 neon-glow-strong" : ""}>
-            <MobileAgenda data={data.agenda} />
-          </div>
-        )}
-        {revealedCards.emails && (
-          <div className={activeCard === "emails" ? "rounded-xl border border-primary/60 neon-glow-strong" : ""}>
-            <MobilePriorityEmails data={data.emails} />
-          </div>
-        )}
-        {revealedCards.news && data.news.slice(0, 3).map((news) => (
-          <div key={news.id} className={activeCard === "news" ? "rounded-xl border border-primary/60 neon-glow-strong" : ""}>
-            <MobileNews data={news} />
-          </div>
-        ))}
-        {revealedCards.health && (
-          <div className={activeCard === "health" ? "rounded-xl border border-accent/60 neon-glow-accent" : ""}>
-            <MobileHealth count={data.healthObservations ?? 0} />
-          </div>
-        )}
-        {revealedCards.closing && (
-          <p className="text-center hud-label text-primary/60 text-glow">FOCO NO ESSENCIAL</p>
-        )}
+      {/* === Mobile: stacked card + caption === */}
+      <div className="pointer-events-none fixed inset-x-0 top-[50vh] bottom-24 z-30 flex flex-col items-center gap-3 px-4 md:hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={focusedCard}
+            initial={{ opacity: 0, y: 20, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.92 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-md"
+          >
+            {focusedCard === "panorama" && <PanoramaCard visible={true} active={true} />}
+            {focusedCard === "weather" && <WeatherCard visible={true} active={true} data={data.weather} />}
+            {focusedCard === "agenda" && <AgendaCard visible={true} active={true} data={data.agenda} />}
+            {focusedCard === "emails" && <PriorityEmailsCard visible={true} active={true} data={data.emails} />}
+            {focusedCard === "news" && (
+              <NewsCard
+                visible={true}
+                active={true}
+                data={data.news[0] ?? { id: "n0", category: "Notícias", title: "", source: "", summary: "" }}
+                positionClass=""
+                width="w-full"
+              />
+            )}
+            {focusedCard === "health" && <HealthCard count={data.healthObservations ?? 0} />}
+            {focusedCard === "closing" && <ClosingCard />}
+          </motion.div>
+        </AnimatePresence>
+
+        <p className="text-sm font-medium text-foreground/90 leading-relaxed text-glow text-center max-w-md">
+          {captionText}
+        </p>
       </div>
     </>
   );
 }
 
-function revevealedNews(r: RevealedCards, _i: number): boolean {
-  return !!r.news;
+// Helper to avoid verbose imports
+function cn(...classes: (string | undefined | false)[]) {
+  return classes.filter(Boolean).join(" ");
 }
 
-// === Mobile simplified cards ===
-
-function MobilePanorama() {
+function HealthCard({ count }: { count: number }) {
   return (
-    <GlassCard className="p-3">
-      <div className="mb-1 flex items-center gap-1.5 text-primary">
-        <span className="hud-label">PANORAMA PRÉVIO</span>
-      </div>
-      <h3 className="text-sm font-bold">Sem desvios relevantes</h3>
-      <p className="mt-1 text-xs text-muted-foreground">Dados consolidados desde ontem.</p>
-    </GlassCard>
-  );
-}
-
-function MobileWeather({ data }: { data: import("@/types/briefing").BriefingWeather }) {
-  return (
-    <GlassCard className="p-3">
-      <div className="mb-1 text-primary">
-        <span className="hud-label">PREVISÃO · CLIMA</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="text-3xl font-bold">{data.temp.toFixed(1)}°</span>
-        <div className="text-xs text-muted-foreground">
-          <div>{data.location}</div>
-          <div>{data.min}° / {data.max}° · {data.rainChance}% chuva</div>
-        </div>
-      </div>
-    </GlassCard>
-  );
-}
-
-function MobileAgenda({ data }: { data: import("@/types/briefing").BriefingAgenda }) {
-  const isFree = data.status === "free" || data.events.length === 0;
-  return (
-    <GlassCard className="p-3">
-      <div className="mb-1 text-primary">
-        <span className="hud-label">AGENDA · HOJE</span>
-      </div>
-      <p className="text-sm font-bold">{isFree ? "Agenda livre" : `${data.events.length} compromissos`}</p>
-      <p className="text-xs text-muted-foreground">{isFree ? "Nenhum compromisso" : data.events[0]?.title}</p>
-    </GlassCard>
-  );
-}
-
-function MobilePriorityEmails({ data }: { data: import("@/types/briefing").BriefingEmails }) {
-  return (
-    <GlassCard className="p-3">
-      <div className="mb-1 text-primary">
-        <span className="hud-label">E-MAIL · PRIORIDADE</span>
-      </div>
-      <p className="text-sm font-bold">{data.priorityCount} prioritárias · {data.total} recebidas</p>
-      {data.items[0] && (
-        <p className="mt-1 text-xs text-muted-foreground">{data.items[0].from}: {data.items[0].subject}</p>
-      )}
-    </GlassCard>
-  );
-}
-
-function MobileNews({ data }: { data: import("@/types/briefing").BriefingNews }) {
-  return (
-    <GlassCard className="p-3">
-      <div className="mb-1 text-primary">
-        <span className="hud-label">NOTÍCIAS · {data.category.toUpperCase()}</span>
-      </div>
-      <p className="text-sm font-bold leading-snug">{data.title}</p>
-      <p className="mt-1 text-[10px] text-subtle">{data.source}</p>
-    </GlassCard>
-  );
-}
-
-function MobileHealth({ count }: { count: number }) {
-  return (
-    <GlassCard className="p-3">
+    <GlassCard className="p-4 border-accent/30">
       <div className="mb-1 flex items-center gap-1.5 text-accent-foreground">
         <Heart className="size-3.5" />
-        <span className="hud-label">SAÚDE</span>
+        <span className="hud-label">SAÚDE · OBSERVAÇÕES</span>
       </div>
-      <p className="text-sm font-bold">{count} observações</p>
-      <p className="mt-1 text-xs text-muted-foreground">O senhor quer ouvi-las?</p>
+      <h3 className="text-base font-bold">{count} observações</h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Tenho {count} observações sobre seus dados de saúde. O senhor quer ouvi-las?
+      </p>
     </GlassCard>
   );
 }
+
+function ClosingCard() {
+  return (
+    <GlassCard className="p-4 text-center">
+      <Activity className="mx-auto size-8 text-primary" />
+      <h3 className="mt-2 text-base font-bold">Foco no essencial</h3>
+      <p className="mt-1 text-xs text-muted-foreground">Estou à disposição, senhor.</p>
+    </GlassCard>
+  );
+}
+
+// Suppress unused-import warnings (kept for future use)
+void Newspaper;
+void Mail;
+void CalendarDays;
+void CloudSun;
